@@ -340,7 +340,7 @@ function renderQ(q){
   return box;
 }
 
-var ENDPOINT='https://script.google.com/macros/s/AKfycbzARZSn7sq021Ax2VvxDmFx8ztoSk0LwHzf4fyiJpM2xt5OtvYKgUmBXWRduLGAUqwMmQ/exec';
+var ENDPOINT='https://script.google.com/macros/s/AKfycbw6BPQTSW70_pVscB-5rjoikbtKg911ra_lk44Xn1HAttquoO1Ss7elDQCgAFRe1K8nog/exec';
 function rid(){ try{ return crypto.randomUUID().replace(/-/g,'').slice(0,12); }catch(e){ return String(Date.now())+Math.random().toString(36).slice(2,8); } }
 var SUBMIT_ID=rid();
 function labels(list,ids){ return (ids||[]).map(function(i){ return lbl(list,i); }).join('; '); }
