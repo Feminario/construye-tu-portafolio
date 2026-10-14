@@ -206,7 +206,7 @@ var SECTIONS=[
  {t:'Sobre ti', note:'Las usamos juntas, solo para ver patrones del grupo.', q:[
   {id:'llego',type:'single',p:'¿Cómo llegaste a Feminario?',o:LLEGO,other:{id:'llego_otro',ph:'Cuéntanos cómo llegaste'}},
   {id:'edad',type:'single',p:'¿Qué edad tienes?',o:idx(EDAD)},
-  {id:'ciudad',type:'text',line:true,required:true,p:'¿Dónde vives?',hint:'Escribe tu ciudad y país',ph:'Ej: Bogotá, Colombia'},
+  {id:'ciudad',type:'text',line:true,required:true,p:'¿Dónde vives?',hint:'Escribe tu ciudad y país, y abajo tu dirección',ph:'Ej: Bogotá, Colombia',extra:{id:'direccion',ph:'Dirección (opcional)'}},
   {id:'ocup',type:'multi',p:'¿En qué trabajas?',hint:'Marca todas las que apliquen',o:OCUP,exclusive:'sin_empleo'},
   {id:'ingreso',type:'single',p:'Aproximadamente, ¿cuál es tu ingreso mensual?',hint:'En pesos colombianos',o:idx(INGRESO)},
   {id:'depend',type:'single',p:'Además de ti, ¿cuántas personas dependen económicamente de ti?',o:idx(DEPEND)},
@@ -330,6 +330,12 @@ function renderQ(q){
     t.value=ans[q.id]||'';
     t.addEventListener('input',function(){ ans[q.id]=t.value; refreshState(); });
     box.append(t);
+    if(q.extra){
+      var t2=h('input',{type:'text',maxlength:'150',placeholder:q.extra.ph});
+      t2.value=ans[q.extra.id]||'';
+      t2.addEventListener('input',function(){ ans[q.extra.id]=t2.value; });
+      box.append(t2);
+    }
   }
   return box;
 }
@@ -378,6 +384,7 @@ function buildPayload(){
     como_llego:lblOther(LLEGO,ans.llego,ans.llego_otro),
     edad_rango:EDAD[ans.edad],
     ciudad:(ans.ciudad||'').trim().slice(0,100),
+    direccion:(ans.direccion||'').trim().slice(0,150),
     ocupacion:labels(OCUP,ans.ocup),
     ingreso_mensual_cop:INGRESO[ans.ingreso],
     personas_a_cargo:DEPEND[ans.depend],
