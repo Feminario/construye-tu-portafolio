@@ -55,9 +55,18 @@ h1{font-family:var(--font-head);font-weight:900;font-size:clamp(34px,9vw,56px);l
 .opt{font-family:var(--font-btn);border:1px solid var(--purple);background:#fff;color:var(--purple);padding:10px 14px;border-radius:14px;cursor:pointer;font-size:14px;font-weight:700;text-align:left;line-height:1.2}
 .opt:hover{background:var(--pink)}
 .opt[aria-pressed="true"]{background:var(--purple);color:#fff}
-.scale{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-.scale .dot{width:46px;height:46px;border-radius:50%;padding:0;font-size:16px;text-align:center}
-.scale small{color:var(--muted);font-size:12px}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:360px}
+.scale .dot{width:100%;aspect-ratio:1;max-width:56px;justify-self:center;border-radius:50%;padding:0;font-size:16px;text-align:center}
+.scale-lbl{display:flex;justify-content:space-between;max-width:360px;margin-top:6px}
+.scale-lbl small{color:var(--muted);font-size:12.5px}
+@media (max-width:600px){
+.card{padding:16px 14px}
+.opts{flex-direction:column;gap:8px}
+.opts .opt{width:100%;padding:12px 14px;font-size:15px;line-height:1.25}
+.scale{gap:6px;max-width:none}
+.scale-lbl{max-width:none}
+.q{margin-bottom:26px}
+}
 input[type=text]{width:100%;border:1px solid var(--purple);border-radius:14px;padding:10px;background:#fff;color:var(--text);font:inherit;margin-top:10px}
 textarea{width:100%;min-height:90px;border:1px solid var(--purple);border-radius:14px;padding:10px;background:#fff;color:var(--text);font:inherit;resize:vertical}
 .center{text-align:center;margin-top:6px}
@@ -260,7 +269,6 @@ function renderSurvey(){
   var btn=h('button',{class:'btn',id:'sendbtn',onclick:submit},saving?'Guardando…':'Enviar mis respuestas');
   if(!ready||saving||!uid||canWrite===false) btn.setAttribute('disabled','');
   root.append(h('div',{class:'center'},btn));
-  if(!ready) root.append(h('p',{class:'note'},'Responde todas las preguntas para poder enviar.'));
   if(!db||!uid) root.append(h('p',{class:'note'},'Vista previa: para enviar tus respuestas abre el enlace con tu cuenta de acceso.'));
   else if(canWrite===false) root.append(h('p',{class:'note'},'Tu acceso es de solo lectura; pide a Feminario acceso de colaboradora para responder.'));
   if(errorMsg) root.append(h('p',{class:'note',style:'color:#B3360A;font-weight:700'},errorMsg));
@@ -274,12 +282,11 @@ function singleOpts(id,o){
   return box;
 }
 function scaleOpts(id,lo,hi){
-  var s=h('div',{class:'scale'},h('small',null,lo));
+  var dots=h('div',{class:'scale'});
   for(var i=1;i<=5;i++){ (function(v){
-    s.append(h('button',{class:'opt dot','aria-pressed':String(ans[id]===v),onclick:function(){ ans[id]=v; renderSurvey(); }},String(v)));
+    dots.append(h('button',{class:'opt dot','aria-pressed':String(ans[id]===v),onclick:function(){ ans[id]=v; renderSurvey(); }},String(v)));
   })(i); }
-  s.append(h('small',null,hi));
-  return s;
+  return h('div',{class:'scalebox'},dots,h('div',{class:'scale-lbl'},h('small',null,lo),h('small',null,hi)));
 }
 function renderQ(q){
   var box=h('div',{class:'q'});
