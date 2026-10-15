@@ -1933,7 +1933,13 @@ function enviarABaseDeDatos(payload){
 /* ============================================================
    ESTADO EN MEMORIA
    ============================================================ */
-let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:null };
+let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:null, vehiculos:[] };
+function listaVehiculosHTML(lista){
+  if(!lista || !lista.length) return "";
+  return `<h3>Tus vehículos elegidos</h3>` + lista.map(x => `
+    <div class="resumen-row"><span class="k">${esc(x.parteJardin||"")}</span><span class="v">${esc(x.vehiculoElegido||x.vehiculo||"")} · ${cop(x.monto_vehiculo_cop!==undefined?x.monto_vehiculo_cop:x.monto)}</span></div>`).join("");
+}
+function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; pantallaBrecha(); }
 
 /* ============================================================
    PANTALLA 1 — BÚSQUEDA POR CORREO
@@ -2073,7 +2079,7 @@ function pantallaVehiculo(){
     ${progreso(3,4,"Paso 3 de 4 · Tu vehículo")}
     <div class="card">
       <h2>Tu vehículo para ${f.nombre.toLowerCase()}</h2>
-      <p class="lead">Elige UN vehículo concreto — el que mejor se ajuste a lo que ya usas o puedas abrir esta semana.</p>
+      <p class="lead">Elige un vehículo concreto (después podrás agregar otro) — el que mejor se ajuste a lo que ya usas o puedas abrir esta semana.</p>
       <label>Vehículo elegido</label>
       <input type="text" id="in-vehiculo" placeholder="Ej: CDT a 180 días en Davivienda, ETF VOO, cuenta Nu...">
       <label>¿Cuánto vas a destinar? (COP)</label>
@@ -2105,6 +2111,7 @@ function guardarVehiculo(){
 
   const f = filaMenu(sesionV.brecha);
   sesionV.vehiculo = { vehiculo, monto, cuando, yaTenia, queTenia, nota };
+  sesionV.vehiculos.push({ parteJardin: f.nombre, vehiculoElegido: vehiculo, monto_vehiculo_cop: monto });
 
   enviarABaseDeDatos({
     tipo: "vehiculo_s2",
@@ -2142,8 +2149,10 @@ function pantallaConfirmacionS2(){
       <div class="resumen-row"><span class="k">Vehículo</span><span class="v">${esc(v.vehiculo)}</span></div>
       <div class="resumen-row"><span class="k">Monto a destinar</span><span class="v">${cop(v.monto)}</span></div>
       <div class="resumen-row"><span class="k">Cuándo</span><span class="v">${esc(v.cuando)}</span></div>
+      ${listaVehiculosHTML(sesionV.vehiculos)}
       <div class="microcopy">Hoy pasaste del plano al vehículo real. El 29 de octubre conocen los arquetipos de estrategia de inversión — desde quien sigue solo índices hasta quien arma su propia tesis — y eligen cuál les hace sentido.</div>
-      <button class="btn secundario" onclick="sesionV={email:null,nombre:null,rango_s1:null,brecha:null,vehiculo:null}; emailOrquestador=''; pantallaInicioUnificado();">Hacer el ejercicio de otra persona</button>
+      <button class="btn" onclick="elegirOtroVehiculo()">Elegir otro vehículo (otra parte del jardín u otro en la misma)</button>
+      <button class="btn secundario" onclick="sesionV={email:null,nombre:null,rango_s1:null,brecha:null,vehiculo:null,vehiculos:[]}; emailOrquestador=''; pantallaInicioUnificado();">Hacer el ejercicio de otra persona</button>
       <div class="footer-nota">Explorar más recursos de Feminario: <a href="${LINK_EXPLORAR}" target="_blank" rel="noopener" style="color:var(--morado);">${LINK_EXPLORAR}</a></div>
     </div>
   `;
@@ -2229,6 +2238,7 @@ function pantallaYaCompleta(datos){
       <div class="resumen-row"><span class="k">Balance de Portafolio</span><span class="v">${b.fecha ? "✓" : "—"}</span></div>
       <div class="resumen-row"><span class="k">Rango objetivo (Sesión 1)</span><span class="v">${r.fecha ? "✓" : "—"}</span></div>
       <div class="resumen-row"><span class="k">Vehículo elegido (Sesión 2)</span><span class="v">${v.fecha ? "✓" : "—"}</span></div>
+      ${listaVehiculosHTML(datos.vehiculos_s2 && datos.vehiculos_s2.length ? datos.vehiculos_s2 : (datos.vehiculo_s2 ? [datos.vehiculo_s2] : []))}
       <button class="btn secundario" id="btn-otro-vehiculo">Elegir otro vehículo</button>
       <button class="link-volver" onclick="pantallaInicioUnificado()">← Usar otro correo</button>
       <div class="footer-nota">Si quieres actualizar tu balance completo, puedes volver a llenarlo desde cero.</div>
@@ -2238,7 +2248,8 @@ function pantallaYaCompleta(datos){
     sesionV.email = emailOrquestador;
     sesionV.nombre = r.nombre || b.nombre || "";
     sesionV.rango_s1 = r;
-    pantallaBrecha();
+    sesionV.vehiculos = (datos.vehiculos_s2 && datos.vehiculos_s2.length ? datos.vehiculos_s2 : (datos.vehiculo_s2 ? [datos.vehiculo_s2] : [])).slice();
+    elegirOtroVehiculo();
   };
 }
 
