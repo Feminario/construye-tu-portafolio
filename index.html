@@ -444,6 +444,10 @@
 
   .vehiculo-card{ border-radius:18px; padding:16px 18px; margin:10px 0 14px; background:rgba(194,203,255,0.3); }
   :root[data-theme="dark"] .vehiculo-card, @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .vehiculo-card{ background:rgba(194,203,255,0.08); } }
+  .panel-acciones{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .btn-mini{ padding:8px 14px; border-radius:999px; border:1.5px solid var(--morado); background:transparent; color:var(--morado-oscuro); font-weight:700; font-size:13px; font-family:inherit; cursor:pointer; }
+  .btn-mini.peligro{ border-color:var(--alerta); color:var(--alerta); }
+  .vehiculo-card h3{ margin:0 0 6px; }
   .vehiculo-card .frase{ font-style:italic; color:var(--morado-oscuro); font-weight:700; font-size:13.5px; margin-bottom:10px; }
   .vehiculo-card .revisar{ font-size:12.5px; color:var(--texto-suave); margin-top:8px; }
   .ejemplo-row{ display:flex; gap:8px; padding:7px 0; border-bottom:1px solid rgba(126,132,174,0.14); font-size:13px; }
@@ -1713,7 +1717,8 @@ function pantallaMatriz(){
 /* ============================================================
    PANTALLA 6 — DEFINIR RANGO FINAL
    ============================================================ */
-function pantallaFinal(rv, rf, liq){
+function pantallaFinal(rv, rf, liq, extra){
+  extra = extra || {};
   const p = sesion.persona;
   document.getElementById("app").innerHTML = `
     ${headerS1()}
@@ -1728,14 +1733,14 @@ function pantallaFinal(rv, rf, liq){
       <div id="suma-indicador"></div>
 
       <label>Injerto (cripto, emprendimiento propio) — opcional, aparte del 100%</label>
-      <input type="number" id="in-injerto" value="0" min="0" max="100" placeholder="0">
+      <input type="number" id="in-injerto" value="${Number(extra.injerto)||0}" min="0" max="100" placeholder="0">
       <small class="help">Recuerda: no debería superar 5-10% de tu portafolio total.</small>
 
       <label>¿Ajustaste algo por tu meta, o te quedaste con lo que decía la matriz? (opcional)</label>
-      <textarea id="in-nota" placeholder="Ej: me moví más conservadora porque mi meta está muy cerca..."></textarea>
+      <textarea id="in-nota" placeholder="Ej: me moví más conservadora porque mi meta está muy cerca...">${esc(extra.nota||"")}</textarea>
 
-      <button class="btn" id="btn-guardar" onclick="guardarRango()">Guardar mi rango objetivo</button>
-      <button class="link-volver" onclick="pantallaMatriz()">← Volver</button>
+      <button class="btn" id="btn-guardar" onclick="guardarRango()">${sesion.editando ? "Guardar cambios" : "Guardar mi rango objetivo"}</button>
+      <button class="link-volver" onclick="${sesion.editando ? "sesion.editando=false; pantallaPanel()" : "pantallaMatriz()"}">← Volver</button>
     </div>
   `;
   chequearSuma();
@@ -1776,7 +1781,7 @@ function guardarRango(){
   const p = sesion.persona;
   const s = sesion.split;
 
-  enviarABaseDeDatos({
+  const payloadRango = {
     tipo: "rango_s1",
     fecha: new Date().toISOString(),
     fechaSesionLabel: FECHA_SESION1_LABEL,
@@ -1787,8 +1792,10 @@ function guardarRango(){
     estructural_cop: s.estructural, invertible_cop: s.invertible, patrimonioNeto_cop: p.patrimonioNeto_cop,
     rango_rentaVariable_pct: rv, rango_rentaFija_pct: rf, rango_liquidez_pct: liq,
     injerto_pct: injerto, nota: nota
-  });
-
+  };
+  enviarABaseDeDatos(payloadRango);
+  panelDatos.rango_s1 = Object.assign({}, payloadRango);
+  if(sesion.editando){ sesion.editando = false; toast("Cambios guardados ✓"); pantallaPanel(); return; }
   pantallaConfirmacionS1();
 }
 
@@ -1819,7 +1826,7 @@ function pantallaConfirmacionS1(){
       <p style="font-size:14px; margin-top:16px;">Hoy dejaste de improvisar. La próxima sesión — <b>15 de octubre</b> — eligen las semillas concretas para cada parte del jardín, y revisan si lo que ya tienen sembrado está realmente diversificado.</p>
 
       <button class="btn" onclick="continuarDeSesion1ASesion2()">Continuar a elegir mi vehículo &rarr;</button>
-      <button class="btn secundario" onclick="pantallaFinal(sesion.rango.rv, sesion.rango.rf, sesion.rango.liq)">Editar mi rango</button>
+      <button class="btn secundario" onclick="pantallaFinal(sesion.rango.rv, sesion.rango.rf, sesion.rango.liq, {injerto:sesion.rango.injerto, nota:sesion.rango.nota})">Editar mi rango</button>
       <div class="footer-nota">Tu rango quedó guardado. Este es el primer pedazo del documento que vas a seguir construyendo en las próximas sesiones.</div>
     </div>
   `;
@@ -1933,13 +1940,19 @@ function enviarABaseDeDatos(payload){
 /* ============================================================
    ESTADO EN MEMORIA
    ============================================================ */
-let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:null, vehiculos:[] };
+let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:null };
+/* Lo que sabemos de la persona (viene del Sheet o se va llenando en esta sesión) */
+let panelDatos = { balance:null, rango_s1:null, vehiculos_s2:[] };
+let vehiculoEditando = null;
+function panelVacio(){ return { balance:null, rango_s1:null, vehiculos_s2:[] }; }
+function nuevoId(){ return "v" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function fmtFecha(f){ const d = new Date(f); return (!f || isNaN(d)) ? "" : d.toLocaleDateString("es-CO", { day:"numeric", month:"long" }); }
 function listaVehiculosHTML(lista){
   if(!lista || !lista.length) return "";
   return `<h3>Tus vehículos elegidos</h3>` + lista.map(x => `
-    <div class="resumen-row"><span class="k">${esc(x.parteJardin||"")}</span><span class="v">${esc(x.vehiculoElegido||x.vehiculo||"")} · ${cop(x.monto_vehiculo_cop!==undefined?x.monto_vehiculo_cop:x.monto)}</span></div>`).join("");
+    <div class="resumen-row"><span class="k">${esc(x.parteJardin||"")}</span><span class="v">${esc(x.vehiculoElegido||"")} · ${cop(x.monto_vehiculo_cop)}</span></div>`).join("");
 }
-function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; pantallaBrecha(); }
+function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; vehiculoEditando = null; pantallaBrecha(); }
 
 /* ============================================================
    PANTALLA 1 — BÚSQUEDA POR CORREO
@@ -2074,28 +2087,29 @@ function pantallaMenu(){
    ============================================================ */
 function pantallaVehiculo(){
   const f = filaMenu(sesionV.brecha);
+  const ve = vehiculoEditando || {};
   document.getElementById("app").innerHTML = `
     ${headerS2()}
     ${progreso(3,4,"Paso 3 de 4 · Tu vehículo")}
     <div class="card">
-      <h2>Tu vehículo para ${f.nombre.toLowerCase()}</h2>
+      <h2>${vehiculoEditando ? "Editar tu vehículo" : "Tu vehículo"} para ${f.nombre.toLowerCase()}</h2>
       <p class="lead">Elige un vehículo concreto (después podrás agregar otro) — el que mejor se ajuste a lo que ya usas o puedas abrir esta semana.</p>
       <label>Vehículo elegido</label>
-      <input type="text" id="in-vehiculo" placeholder="Ej: CDT a 180 días en Davivienda, ETF VOO, cuenta Nu...">
+      <input type="text" id="in-vehiculo" value="${esc(ve.vehiculoElegido||"")}" placeholder="Ej: CDT a 180 días en Davivienda, ETF VOO, cuenta Nu...">
       <label>¿Cuánto vas a destinar? (COP)</label>
-      <input type="number" id="in-monto" min="0" step="1" placeholder="Ej: 500000">
+      <input type="number" id="in-monto" min="0" step="1" value="${Number(ve.monto_vehiculo_cop)||""}" placeholder="Ej: 500000">
       <label>¿Cuándo lo vas a abrir o aportar?</label>
-      <input type="text" id="in-cuando" placeholder="Ej: esta semana, antes de fin de mes, 30 de octubre...">
+      <input type="text" id="in-cuando" value="${esc(ve.cuandoAportar||"")}" placeholder="Ej: esta semana, antes de fin de mes, 30 de octubre...">
       <div class="checkbox-row">
-        <input type="checkbox" id="in-yatenia">
+        <input type="checkbox" id="in-yatenia" ${ve.yaTeniaEnEstaParte==="sí" ? "checked" : ""}>
         <label style="margin:0; font-weight:600;" for="in-yatenia">Ya tengo algo sembrado en esta parte y confirmé que este vehículo no repite lo que ya tengo</label>
       </div>
       <label>¿Qué tienes ya sembrado ahí, si algo? <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
-      <textarea id="in-quetenia" placeholder="Ej: ya tengo un ETF de tecnología de EE.UU., este nuevo es de mercados emergentes..."></textarea>
+      <textarea id="in-quetenia" placeholder="Ej: ya tengo un ETF de tecnología de EE.UU., este nuevo es de mercados emergentes...">${esc(ve.queTeniaYa||"")}</textarea>
       <label>Nota libre <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
-      <textarea id="in-nota" placeholder="Cualquier cosa que quieras recordar sobre esta decisión..."></textarea>
-      <button class="btn" onclick="guardarVehiculo()">Guardar mi vehículo</button>
-      <button class="link-volver" onclick="pantallaMenu()">Volver al menú</button>
+      <textarea id="in-nota" placeholder="Cualquier cosa que quieras recordar sobre esta decisión...">${esc(ve.nota||"")}</textarea>
+      <button class="btn" onclick="guardarVehiculo()">${vehiculoEditando ? "Guardar cambios" : "Guardar mi vehículo"}</button>
+      <button class="link-volver" onclick="${vehiculoEditando ? "vehiculoEditando=null; pantallaPanel()" : "pantallaMenu()"}">${vehiculoEditando ? "← Volver a mi panel" : "Volver al menú"}</button>
     </div>
   `;
 }
@@ -2110,11 +2124,12 @@ function guardarVehiculo(){
   const nota = document.getElementById("in-nota").value.trim();
 
   const f = filaMenu(sesionV.brecha);
+  const ed = vehiculoEditando;
   sesionV.vehiculo = { vehiculo, monto, cuando, yaTenia, queTenia, nota };
-  sesionV.vehiculos.push({ parteJardin: f.nombre, vehiculoElegido: vehiculo, monto_vehiculo_cop: monto });
 
-  enviarABaseDeDatos({
-    tipo: "vehiculo_s2",
+  const registro = {
+    id: nuevoId(),
+    tipo: ed ? "vehiculo_s2_editar" : "vehiculo_s2",
     fecha: new Date().toISOString(),
     fechaSesionLabel: FECHA_SESION2_LABEL,
     nombre: sesionV.nombre, email: sesionV.email,
@@ -2125,9 +2140,37 @@ function guardarVehiculo(){
     yaTeniaEnEstaParte: yaTenia ? "sí" : "no",
     queTeniaYa: queTenia,
     nota: nota
-  });
+  };
+  if(ed) registro.idAnterior = ed.id;
+  enviarABaseDeDatos(registro);
 
+  const lista = panelDatos.vehiculos_s2;
+  if(ed){
+    const i = lista.findIndex(x => x.id === ed.id);
+    if(i >= 0) lista[i] = registro; else lista.push(registro);
+    vehiculoEditando = null;
+    toast("Cambios guardados ✓");
+    pantallaPanel();
+    return;
+  }
+  lista.push(registro);
   pantallaConfirmacionS2();
+}
+
+function editarVehiculo(id){
+  const v = panelDatos.vehiculos_s2.find(x => x.id === id);
+  if(!v) return;
+  const fila = MENU_VEHICULOS.find(f => f.nombre === v.parteJardin);
+  vehiculoEditando = v;
+  sesionV.brecha = fila ? fila.clave : null;
+  if(fila) pantallaVehiculo(); else pantallaBrecha();
+}
+function quitarVehiculo(id){
+  if(!confirm("¿Seguro que quieres quitar este vehículo de tu lista?")) return;
+  enviarABaseDeDatos({ tipo:"vehiculo_s2_quitar", id, email: emailOrquestador || sesionV.email, fecha: new Date().toISOString() });
+  panelDatos.vehiculos_s2 = panelDatos.vehiculos_s2.filter(x => x.id !== id);
+  toast("Vehículo quitado");
+  pantallaPanel();
 }
 
 /* ============================================================
@@ -2149,10 +2192,11 @@ function pantallaConfirmacionS2(){
       <div class="resumen-row"><span class="k">Vehículo</span><span class="v">${esc(v.vehiculo)}</span></div>
       <div class="resumen-row"><span class="k">Monto a destinar</span><span class="v">${cop(v.monto)}</span></div>
       <div class="resumen-row"><span class="k">Cuándo</span><span class="v">${esc(v.cuando)}</span></div>
-      ${listaVehiculosHTML(sesionV.vehiculos)}
+      ${listaVehiculosHTML(panelDatos.vehiculos_s2)}
       <div class="microcopy">Hoy pasaste del plano al vehículo real. El 29 de octubre conocen los arquetipos de estrategia de inversión — desde quien sigue solo índices hasta quien arma su propia tesis — y eligen cuál les hace sentido.</div>
       <button class="btn" onclick="elegirOtroVehiculo()">Elegir otro vehículo (otra parte del jardín u otro en la misma)</button>
-      <button class="btn secundario" onclick="sesionV={email:null,nombre:null,rango_s1:null,brecha:null,vehiculo:null,vehiculos:[]}; emailOrquestador=''; pantallaInicioUnificado();">Hacer el ejercicio de otra persona</button>
+      <button class="btn secundario" onclick="pantallaPanel()">Ver mi panel</button>
+      <button class="btn secundario" onclick="sesionV={email:null,nombre:null,rango_s1:null,brecha:null,vehiculo:null}; emailOrquestador=''; pantallaInicioUnificado();">Hacer el ejercicio de otra persona</button>
       <div class="footer-nota">Explorar más recursos de Feminario: <a href="${LINK_EXPLORAR}" target="_blank" rel="noopener" style="color:var(--morado);">${LINK_EXPLORAR}</a></div>
     </div>
   `;
@@ -2170,6 +2214,7 @@ function headerOrquestador(sub){
 }
 
 function pantallaInicioUnificado(mensajeError){
+  panelDatos = panelVacio(); vehiculoEditando = null; sesion.editando = false;
   document.getElementById("app").innerHTML = `
     ${headerOrquestador("Bienvenida")}
     <div class="card">
@@ -2202,22 +2247,13 @@ async function buscarEntradaUnificada(){
   let datos = null;
   try{ datos = await fetchDatosLive(email); }catch(err){ datos = null; }
   if(!datos){ pantallaBienvenidaConEmail(email); return; }
-  if(datos.vehiculo_s2){ pantallaYaCompleta(datos); return; }
-  if(datos.rango_s1){
-    sesionV.email = email;
-    sesionV.nombre = datos.rango_s1.nombre || (datos.balance && datos.balance.nombre) || "";
-    sesionV.rango_s1 = datos.rango_s1;
-    pantallaResumenS1();
-    return;
-  }
-  if(datos.balance){
-    const persona = normalizarPersona(datos.balance);
-    sesion.persona = persona;
-    sesion.horizonte = bucketHorizonte(persona.metaHorizonte);
-    sesion.split = estructuralInvertible(persona);
-    pantallaResumen();
-    return;
-  }
+  panelDatos = {
+    balance: datos.balance || null,
+    rango_s1: datos.rango_s1 || null,
+    vehiculos_s2: (datos.vehiculos_s2 || []).slice()
+  };
+  if(!panelDatos.vehiculos_s2.length && datos.vehiculo_s2) panelDatos.vehiculos_s2.push(datos.vehiculo_s2); // script anterior
+  if(panelDatos.balance || panelDatos.rango_s1 || panelDatos.vehiculos_s2.length){ pantallaPanel(); return; }
   pantallaBienvenidaConEmail(email);
 }
 
@@ -2227,30 +2263,91 @@ function pantallaBienvenidaConEmail(email){
   if(elm) elm.value = email;
 }
 
-function pantallaYaCompleta(datos){
-  const b = datos.balance||{}, r = datos.rango_s1||{}, v = datos.vehiculo_s2||{};
-  const nombreMostrar = (v.nombre||r.nombre||b.nombre||"").split(" ")[0]||"";
+function pantallaPanel(){
+  const b = panelDatos.balance, r = panelDatos.rango_s1, vs = panelDatos.vehiculos_s2 || [];
+  sesion.editando = false; vehiculoEditando = null;
+  sesionV.email = emailOrquestador || sesionV.email;
+  const nombreCompleto = (r && r.nombre) || (b && b.nombre) || (vs[0] && vs[0].nombre) || sesionV.nombre || "";
+  sesionV.nombre = nombreCompleto;
+  if(r) sesionV.rango_s1 = r;
+  const nombre = nombreCompleto.split(" ")[0] || "";
+
+  const cardBalance = b ? `
+    <div class="vehiculo-card">
+      <h3>Mi Balance de Portafolio ✓</h3>
+      <div class="resumen-row"><span class="k">Último corte</span><span class="v">${esc(fmtFecha(b.fecha))}</span></div>
+      <div class="resumen-row"><span class="k">Patrimonio neto</span><span class="v">${cop(b.patrimonioNeto_cop)}</span></div>
+      <div class="panel-acciones"><button class="btn-mini" onclick="actualizarBalance()">Actualizar mi balance</button></div>
+    </div>` : "";
+
+  const cardRango = r ? `
+    <div class="vehiculo-card">
+      <h3>Mi Rango Objetivo (Sesión 1) ✓</h3>
+      <div class="resumen-row"><span class="k">Renta variable</span><span class="v">${esc(String(r.rango_rentaVariable_pct||0))}%</span></div>
+      <div class="resumen-row"><span class="k">Renta fija</span><span class="v">${esc(String(r.rango_rentaFija_pct||0))}%</span></div>
+      <div class="resumen-row"><span class="k">Liquidez</span><span class="v">${esc(String(r.rango_liquidez_pct||0))}%</span></div>
+      ${Number(r.injerto_pct)>0 ? `<div class="resumen-row"><span class="k">Injerto</span><span class="v">${esc(String(r.injerto_pct))}%</span></div>` : ""}
+      <div class="panel-acciones"><button class="btn-mini" onclick="editarRango()">Editar</button></div>
+    </div>` : "";
+
+  const cardVehiculos = vs.length ? `
+    <div class="vehiculo-card">
+      <h3>Mis Vehículos (Sesión 2) ✓</h3>
+      ${vs.map(v => `
+        <div style="margin:10px 0 12px;">
+          <div class="resumen-row"><span class="k">${esc(v.parteJardin||"")}</span><span class="v">${esc(v.vehiculoElegido||"")} · ${cop(v.monto_vehiculo_cop)}</span></div>
+          <div class="panel-acciones">
+            <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar</button>
+            <button class="btn-mini peligro" onclick="quitarVehiculo('${esc(v.id)}')">Quitar</button>
+          </div>
+        </div>`).join("")}
+      <div class="panel-acciones"><button class="btn-mini" onclick="elegirOtroVehiculo()">+ Agregar otro vehículo</button></div>
+    </div>` : "";
+
+  let siguiente = "";
+  if(b && !r){
+    siguiente = `<div class="microcopy">Siguiente paso: tu Rango Objetivo.</div>
+      <button class="btn" onclick="continuarARangoDesdePanel()">Continuar a mi Rango Objetivo &rarr;</button>`;
+  } else if(r && !vs.length){
+    siguiente = `<div class="microcopy">Siguiente paso: elegir tu vehículo.</div>
+      <button class="btn" onclick="elegirOtroVehiculo()">Continuar a elegir mi vehículo &rarr;</button>`;
+  } else if(!b && !r && !vs.length){
+    siguiente = `<button class="btn" onclick="pantallaBienvenidaConEmail(emailOrquestador)">Empezar con mi Balance de Portafolio</button>`;
+  }
+
   document.getElementById("app").innerHTML = `
-    ${headerOrquestador("Ya completaste tu Estrategia")}
+    ${headerOrquestador("Tu Estrategia")}
     <div class="card">
-      <p class="lead">Hola de nuevo, ${esc(nombreMostrar)} 👋</p>
-      <p>Ya tienes guardadas las tres partes de tu Estrategia de Inversión:</p>
-      <div class="resumen-row"><span class="k">Balance de Portafolio</span><span class="v">${b.fecha ? "✓" : "—"}</span></div>
-      <div class="resumen-row"><span class="k">Rango objetivo (Sesión 1)</span><span class="v">${r.fecha ? "✓" : "—"}</span></div>
-      <div class="resumen-row"><span class="k">Vehículo elegido (Sesión 2)</span><span class="v">${v.fecha ? "✓" : "—"}</span></div>
-      ${listaVehiculosHTML(datos.vehiculos_s2 && datos.vehiculos_s2.length ? datos.vehiculos_s2 : (datos.vehiculo_s2 ? [datos.vehiculo_s2] : []))}
-      <button class="btn secundario" id="btn-otro-vehiculo">Elegir otro vehículo</button>
+      <p class="lead">Hola${nombre ? ", " + esc(nombre) : ""} 👋 Esto es lo que llevas de tu Estrategia de Inversión.</p>
+      ${cardBalance}${cardRango}${cardVehiculos}
+      ${siguiente}
       <button class="link-volver" onclick="pantallaInicioUnificado()">← Usar otro correo</button>
-      <div class="footer-nota">Si quieres actualizar tu balance completo, puedes volver a llenarlo desde cero.</div>
     </div>
   `;
-  document.getElementById("btn-otro-vehiculo").onclick = function(){
-    sesionV.email = emailOrquestador;
-    sesionV.nombre = r.nombre || b.nombre || "";
-    sesionV.rango_s1 = r;
-    sesionV.vehiculos = (datos.vehiculos_s2 && datos.vehiculos_s2.length ? datos.vehiculos_s2 : (datos.vehiculo_s2 ? [datos.vehiculo_s2] : [])).slice();
-    elegirOtroVehiculo();
-  };
+}
+function actualizarBalance(){ pantallaBienvenidaConEmail(emailOrquestador); }
+function continuarARangoDesdePanel(){
+  const persona = normalizarPersona(panelDatos.balance);
+  sesion.persona = persona;
+  sesion.horizonte = bucketHorizonte(persona.metaHorizonte);
+  sesion.split = estructuralInvertible(persona);
+  pantallaResumen();
+}
+function editarRango(){
+  const r = panelDatos.rango_s1, b = panelDatos.balance || {};
+  sesion.persona = normalizarPersona({
+    nombre: r.nombre || b.nombre, email: r.email || emailOrquestador,
+    perfilRiesgoCategoria: r.perfilRiesgo || r.perfilRiesgoCategoria || b.perfilRiesgoCategoria,
+    metaPrincipal: r.metaPrincipal || b.metaPrincipal,
+    metaHorizonte: r.metaHorizonteOriginal || b.metaHorizonte,
+    patrimonioNeto_cop: r.patrimonioNeto_cop || b.patrimonioNeto_cop, fecha: r.fecha
+  });
+  sesion.horizonte = r.horizonteElegido || bucketHorizonte(sesion.persona.metaHorizonte);
+  const est = numOrCero(r.estructural_cop), inv = numOrCero(r.invertible_cop);
+  sesion.split = { estructural: est, invertible: inv, total: est + inv };
+  sesion.editando = true;
+  pantallaFinal(numOrCero(r.rango_rentaVariable_pct), numOrCero(r.rango_rentaFija_pct), numOrCero(r.rango_liquidez_pct),
+    { injerto: r.injerto_pct, nota: r.nota });
 }
 
 /* Puentes entre secciones (evitan re-consultar el Sheet con datos que ya están en memoria) */
@@ -2259,6 +2356,7 @@ function continuarDeBalanceASesion1(){
   const snapshot = state.historial[state.historial.length-1];
   const coherencia = evaluarCoherencia(state.perfilRiesgo, state.metas, snapshot.activos, snapshot.totales.totalActivos);
   const payload = construirPayloadPlano(state, snapshot, coherencia);
+  panelDatos.balance = payload;
   const persona = normalizarPersona(payload);
   sesion.persona = persona;
   sesion.horizonte = bucketHorizonte(persona.metaHorizonte);
