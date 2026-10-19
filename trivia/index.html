@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trivia · Tu Portafolio, Tu Estrategia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=MuseoModerno:ital,wght@0,100..900;1,100..900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --morado:#7E84AE; --periwinkle:#C2CBFF; --lavanda:#CEA2DD; --verde:#DFF3AF;
+    --morado-oscuro:#4C4F68; --crema:#F8F7F2; --texto:#3A3550; --texto-suave:#6E6B85;
+    --bien:#3E8F63; --alerta:#B24A72;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Montserrat',-apple-system,'Segoe UI',Arial,sans-serif; background:var(--crema); color:var(--texto); min-height:100vh;
+    background-image:radial-gradient(circle at 10% 0%, rgba(194,203,255,.55), transparent 45%), radial-gradient(circle at 100% 100%, rgba(223,243,175,.5), transparent 40%); }
+  #app{ max-width:620px; margin:0 auto; padding:24px 16px 60px; }
+  .brand{ text-align:center; margin-bottom:8px; }
+  .brand img{ height:40px; width:auto; }
+  .eyebrow{ text-align:center; font-size:12px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--morado); margin-bottom:4px; }
+  h1,h2,h3{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; color:var(--morado-oscuro); }
+  h1{ text-align:center; font-size:26px; margin:0 0 18px; }
+  h2{ font-size:21px; margin:0 0 10px; text-wrap:balance; }
+  .card{ background:rgba(255,255,255,.8); border:1px solid rgba(255,255,255,.7); border-radius:24px; padding:22px; box-shadow:0 10px 30px rgba(126,132,174,.18); }
+  .ilus{ display:block; margin:0 auto 12px; max-height:150px; width:auto; border-radius:16px; clip-path:inset(0 4% 0 4% round 16px); }
+  p{ line-height:1.55; }
+  .lead{ font-size:15px; color:var(--texto); }
+  .progreso{ display:flex; justify-content:space-between; font-size:12px; color:var(--texto-suave); margin-bottom:10px; font-weight:600; }
+  .barra{ height:6px; background:rgba(126,132,174,.2); border-radius:999px; margin-bottom:14px; overflow:hidden; }
+  .barra > div{ height:100%; background:var(--morado); transition:width .3s; }
+  .afirmacion{ font-size:18px; font-weight:700; color:var(--morado-oscuro); line-height:1.4; margin:6px 0 16px; }
+  .opcion{ display:block; width:100%; text-align:left; padding:14px 16px; margin:8px 0; border-radius:16px; border:2px solid var(--periwinkle); background:#fff; font:inherit; font-size:14.5px; font-weight:600; color:var(--texto); cursor:pointer; }
+  .opcion:hover{ border-color:var(--morado); }
+  .opcion.ok{ border-color:var(--bien); background:rgba(62,143,99,.1); }
+  .opcion.mal{ border-color:var(--alerta); background:rgba(178,74,114,.08); }
+  .opcion:disabled{ cursor:default; }
+  .opcion .por{ display:block; font-weight:500; font-size:13px; color:var(--texto-suave); margin-top:6px; }
+  .vf{ display:flex; gap:10px; }
+  .vf .opcion{ text-align:center; font-size:16px; }
+  .resp{ border-radius:16px; padding:14px 16px; margin:12px 0; font-size:14px; background:rgba(194,203,255,.3); }
+  .resp.bien{ background:rgba(62,143,99,.12); } .resp.mal{ background:rgba(178,74,114,.1); }
+  .resp b.t{ display:block; margin-bottom:4px; }
+  .btn{ display:block; width:100%; padding:15px; border:none; border-radius:999px; background:linear-gradient(135deg,#7E84AE,#9A8FC9); color:#fff; font:inherit; font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; box-shadow:0 10px 24px rgba(126,132,174,.4); }
+  .btn.sec{ background:#fff; color:var(--morado-oscuro); border:2px solid var(--periwinkle); box-shadow:none; }
+  .nota{ font-size:12px; color:var(--texto-suave); text-align:center; margin-top:14px; }
+  .caso-ficha{ background:rgba(223,243,175,.45); border-radius:14px; padding:12px 14px; font-size:14px; margin-bottom:10px; }
+  .puntaje{ font-size:44px; font-weight:800; text-align:center; color:var(--morado-oscuro); margin:6px 0; font-family:'MuseoModerno',sans-serif; }
+  .fila{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(126,132,174,.2); font-size:14px; }
+  a{ color:var(--morado); font-weight:700; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ============================================================
+   TRIVIA — Sesión 2 · Tu Portafolio, Tu Estrategia
+   Tres rondas: ¿Verdad o mito? · Casos reales · Conceptos
+   ============================================================ */
+const LOGO = "../assets/logo-feminario.png";
+const ILUS = "../assets/billetera.png";
+
+const MITOS = [
+  { t:"Cripto puede ser tu reserva de agua porque se vende en segundos.", v:false,
+    e:"Se vende rápido, pero el precio es tan volátil que puede estar devaluado justo cuando más necesitas la plata." },
+  { t:"Un CDT a 360 días es una buena reserva de agua porque es plata guardada.", v:false,
+    e:"Guardada no es lo mismo que líquida: retirarlo antes de tiempo cuesta penalidad." },
+  { t:"Tres ETFs que siguen el mismo índice son tres inversiones distintas.", v:false,
+    e:"Son la misma apuesta tres veces con tres nombres. Diversificar es cruzar geografía, sector y tipo de activo, no sumar logos." },
+  { t:"Si tu meta es en 10 meses, puedes meter esa plata en un ETF de small caps para que rinda más.", v:false,
+    e:"Horizonte corto y alta volatilidad no combinan: no te da tiempo de recuperarte si el mercado cae justo antes de que necesites la plata." },
+  { t:"Un CDT puede ser buen vehículo para tus raíces (renta fija).", v:true,
+    e:"Sí: es predecible y puede esperar el plazo. Solo recuerda que no es líquido hasta el vencimiento." },
+  { t:"Tener tu reserva 100% en dólares es siempre más seguro si gastas en pesos.", v:false,
+    e:"Te protege de la devaluación del peso, pero te expone a que el dólar baje justo cuando conviertes. Lo ideal es que calce con tu moneda de gasto." },
+  { t:"Diversificar es tener 5 ETFs distintos, sin importar qué siguen.", v:false,
+    e:"Si los 5 siguen el mismo índice, es mono-cultivo con 5 nombres." },
+  { t:"El injerto puede ser tu tronco si te está yendo muy bien.", v:false,
+    e:"El tope de 5-10% no cambia aunque esté rindiendo bien: el tronco es la base estable, no la apuesta ganadora del momento." }
+];
+
+const CASOS = [
+  { quien:"Marcela", ficha:"Perfil conservadora. Meta: cuota inicial de vivienda en 8 meses. Su brecha más grande es la reserva de agua (0% ahí hoy).",
+    q:"¿Qué vehículo va?",
+    ops:[
+      { t:"CDT a 360 días", ok:false, por:"Guardada no es líquida: sacarla antes cuesta penalidad." },
+      { t:"Cuenta remunerada o fondo de muy corto plazo en pesos", ok:true, por:"Liquidez inmediata, volatilidad muy baja y en la moneda en que gasta." },
+      { t:"ETF del S&P 500", ok:false, por:"Su meta es en 8 meses: la volatilidad no le da tiempo de recuperarse." },
+      { t:"Bitcoin", ok:false, por:"La volatilidad más alta del menú, con un horizonte cortísimo." } ] },
+  { quien:"Daniela", ficha:"Perfil arriesgada. Meta: independencia financiera en 20 años. Su brecha es el tronco: 0% en mercado, todo está en CDTs.",
+    q:"¿Qué vehículo va?",
+    ops:[
+      { t:"Un ETF amplio, como VOO o ICOLCAP", ok:true, por:"Es la base estable de renta variable, con un horizonte largo que absorbe las caídas." },
+      { t:"Un ETF sectorial de tecnología", ok:false, por:"Eso es una rama, no el tronco: concentra el riesgo en un solo sector." },
+      { t:"Otro CDT más", ok:false, por:"Ya tiene todo en renta fija: no cierra su brecha." },
+      { t:"Un ETF de un solo país emergente", ok:false, por:"Es una apuesta geográfica puntual, no diversificación amplia." } ] },
+  { quien:"Paula", ficha:"Perfil moderada. Meta: estudios de sus hijos en 5 años. Recibe parte de sus ingresos en dólares (cliente remoto en EE.UU.). Su brecha son las raíces.",
+    q:"¿Qué vehículo va?",
+    ops:[
+      { t:"Todo en CDT en pesos", ok:false, por:"No calza con la parte de sus ingresos que llega en dólares." },
+      { t:"CDT en COP y un bono o ETF de renta fija en USD", ok:true, por:"Combina las dos monedas en que gana y mantiene la volatilidad baja." },
+      { t:"Un ETF de small caps", ok:false, por:"Su meta es en 5 años y esto es una rama de alta volatilidad, no raíces." },
+      { t:"Cripto", ok:false, por:"Es injerto, no renta fija, y tiene un tope de 5-10%." } ] },
+  { quien:"Camila ⚠️ (encuentra el error)", ficha:"Perfil conservadora. Meta: comprar un carro en 3 meses. Puso esa plata en Bitcoin “porque subió mucho el año pasado”.",
+    q:"¿Qué está mal?",
+    ops:[
+      { t:"Mezcla un horizonte cortísimo con la volatilidad más alta del menú", ok:true, por:"Además, el injerto nunca debería ser el 100% de nada: tope de 5-10% del portafolio." },
+      { t:"Bitcoin no se puede vender", ok:false, por:"Sí se puede, y rápido. El problema es el precio, no el acceso." },
+      { t:"El carro es muy caro", ok:false, por:"El precio del carro no es el error: lo es dónde puso la plata." },
+      { t:"Debió meter todo en un solo ETF", ok:false, por:"Tampoco: en 3 meses necesita liquidez y baja volatilidad." } ] }
+];
+
+const CONCEPTOS = [
+  { q:"¿Qué es un CDT?", ops:["Un depósito en un banco a plazo y tasa pactados; retirar antes suele tener penalidad", "Una acción de una empresa", "Una cuenta de ahorro con retiro inmediato"], c:0,
+    e:"Es renta fija: sabes cuánto rinde si esperas el plazo completo." },
+  { q:"¿Qué es un ETF?", ops:["Un fondo que cotiza en bolsa y replica un índice", "Un depósito a plazo fijo", "Una criptomoneda"], c:0,
+    e:"Con un solo ETF compras cientos de empresas de un índice, por ejemplo el S&P 500." },
+  { q:"¿Qué es un FIC (fondo de inversión colectiva)?", ops:["Un préstamo a una empresa", "Un fondo donde juntas plata con otras personas y la administra una fiduciaria o comisionista", "Un seguro de vida"], c:1,
+    e:"Hay FICs de renta fija, de corto plazo, de renta variable… revisa la comisión de administración." },
+  { q:"¿Qué son los TES?", ops:["Bonos del gobierno colombiano", "Acciones de Ecopetrol", "Cuentas de neobancos"], c:0,
+    e:"Le prestas al Estado y él te paga intereses: es renta fija." },
+  { q:"¿Qué significa liquidez?", ops:["Cuánto rinde una inversión", "Qué tan rápido lo conviertes en efectivo sin perder valor", "Cuánto cuesta abrirla"], c:1,
+    e:"Un CDT a 360 días está guardado, pero no es líquido." },
+  { q:"Un CDT paga 9% y la inflación es 7%. ¿Cuál es, más o menos, tu ganancia real?", ops:["2%", "9%", "16%"], c:0,
+    e:"Lo que importa es cuánto más compras después de la inflación: aprox. rendimiento menos inflación." },
+  { q:"¿Qué es diversificar de verdad?", ops:["Comprar muchos ETFs", "Cruzar geografía, sector y tipo de activo", "Poner todo en lo que más sube"], c:1,
+    e:"Si todos tus ETFs siguen lo mismo, tienes mono-cultivo con varios nombres." },
+  { q:"¿Por qué una vivienda no cuenta como liquidez?", ops:["Porque venderla toma tiempo y tiene costos", "Porque no vale nada", "Porque no se puede vender"], c:0,
+    e:"Es un activo valioso, pero no lo puedes convertir en efectivo en 1-2 días." }
+];
+
+const app = document.getElementById("app");
+const estado = { ronda:0, i:0, aciertos:[0,0,0] };
+const TOTALES = [MITOS.length, CASOS.length, CONCEPTOS.length];
+const NOMBRES = ["¿Verdad o mito?", "Casos reales", "Conceptos"];
+
+function head(sub){
+  return `<div class="brand"><img src="${LOGO}" alt="Feminario"></div>
+  <div class="eyebrow">Sesión 2 · Tu Portafolio, Tu Estrategia</div>
+  <h1>${sub}</h1>`;
+}
+function progreso(){
+  const t = TOTALES[estado.ronda];
+  return `<div class="progreso"><span>${NOMBRES[estado.ronda]}</span><span>${estado.i + 1} de ${t}</span></div>
+  <div class="barra"><div style="width:${(estado.i / t) * 100}%"></div></div>`;
+}
+
+function inicio(){
+  estado.ronda = 0; estado.i = 0; estado.aciertos = [0,0,0];
+  app.innerHTML = head("Trivia: ¿qué tanto sabes de vehículos?") + `
+    <div class="card">
+      <img class="ilus" src="${ILUS}" alt="">
+      <p class="lead">Tres rondas cortas para entender los conceptos antes de elegir tu vehículo. No hay puntaje que castigue: cada respuesta trae su explicación.</p>
+      <div class="fila"><span>1 · ¿Verdad o mito?</span><b>${MITOS.length} preguntas</b></div>
+      <div class="fila"><span>2 · Casos reales</span><b>${CASOS.length} casos</b></div>
+      <div class="fila"><span>3 · Conceptos</span><b>${CONCEPTOS.length} preguntas</b></div>
+      <button class="btn" onclick="mostrar()">Empezar</button>
+      <div class="nota">Son categorías para aprender, no recomendaciones de inversión.</div>
+    </div>`;
+}
+
+function mostrar(){
+  if(estado.ronda === 0) return mito();
+  if(estado.ronda === 1) return caso();
+  return concepto();
+}
+function siguiente(){
+  estado.i++;
+  if(estado.i >= TOTALES[estado.ronda]){ estado.ronda++; estado.i = 0; }
+  if(estado.ronda > 2) return final();
+  mostrar();
+}
+
+/* ---- Ronda 1: verdad o mito ---- */
+function mito(){
+  const m = MITOS[estado.i];
+  app.innerHTML = head(NOMBRES[0]) + `<div class="card">${progreso()}
+    <div class="afirmacion">“${m.t}”</div>
+    <div class="vf"><button class="opcion" id="bv" onclick="respMito(true)">Verdad</button><button class="opcion" id="bf" onclick="respMito(false)">Mito</button></div>
+    <div id="fb"></div></div>`;
+}
+function respMito(resp){
+  const m = MITOS[estado.i], bien = resp === m.v;
+  if(bien) estado.aciertos[0]++;
+  document.getElementById("bv").disabled = true; document.getElementById("bf").disabled = true;
+  document.getElementById(m.v ? "bv" : "bf").classList.add("ok");
+  if(!bien) document.getElementById(resp ? "bv" : "bf").classList.add("mal");
+  document.getElementById("fb").innerHTML = `<div class="resp ${bien ? "bien" : "mal"}"><b class="t">${m.v ? "Es verdad" : "Es un mito"}${bien ? " ✓" : ""}</b>${m.e}</div>
+    <button class="btn" onclick="siguiente()">Siguiente</button>`;
+}
+
+/* ---- Ronda 2: casos ---- */
+function caso(){
+  const c = CASOS[estado.i];
+  app.innerHTML = head(NOMBRES[1]) + `<div class="card">${progreso()}
+    <h2>${c.quien}</h2>
+    <div class="caso-ficha">${c.ficha}</div>
+    <div class="afirmacion" style="font-size:16px">${c.q}</div>
+    <div id="ops">${c.ops.map((o, k) => `<button class="opcion" onclick="respCaso(${k})">${o.t}</button>`).join("")}</div>
+    <div id="fb"></div></div>`;
+}
+function respCaso(k){
+  const c = CASOS[estado.i], o = c.ops[k], bien = o.ok;
+  if(bien) estado.aciertos[1]++;
+  document.getElementById("ops").innerHTML = c.ops.map((x, j) => `<button class="opcion ${x.ok ? "ok" : (j === k ? "mal" : "")}" disabled>${x.t}<span class="por">${x.por}</span></button>`).join("");
+  document.getElementById("fb").innerHTML = `<div class="resp ${bien ? "bien" : "mal"}"><b class="t">${bien ? "¡Eso es! ✓" : "Casi: mira por qué"}</b>${bien ? "Así lo resolvería el grupo, con los 4 criterios: liquidez, horizonte, volatilidad y moneda." : "Revisa la respuesta marcada en verde y por qué los otros no encajan."}</div>
+    <button class="btn" onclick="siguiente()">Siguiente</button>`;
+}
+
+/* ---- Ronda 3: conceptos ---- */
+function concepto(){
+  const c = CONCEPTOS[estado.i];
+  app.innerHTML = head(NOMBRES[2]) + `<div class="card">${progreso()}
+    <div class="afirmacion">${c.q}</div>
+    <div id="ops">${c.ops.map((o, k) => `<button class="opcion" onclick="respConcepto(${k})">${o}</button>`).join("")}</div>
+    <div id="fb"></div></div>`;
+}
+function respConcepto(k){
+  const c = CONCEPTOS[estado.i], bien = k === c.c;
+  if(bien) estado.aciertos[2]++;
+  document.getElementById("ops").innerHTML = c.ops.map((o, j) => `<button class="opcion ${j === c.c ? "ok" : (j === k ? "mal" : "")}" disabled>${o}</button>`).join("");
+  document.getElementById("fb").innerHTML = `<div class="resp ${bien ? "bien" : "mal"}"><b class="t">${bien ? "¡Correcto! ✓" : "No exactamente"}</b>${c.e}</div>
+    <button class="btn" onclick="siguiente()">${estado.ronda === 2 && estado.i === TOTALES[2] - 1 ? "Ver mi resultado" : "Siguiente"}</button>`;
+}
+
+/* ---- Final ---- */
+function final(){
+  const ac = estado.aciertos.reduce((a, b) => a + b, 0), tot = TOTALES.reduce((a, b) => a + b, 0);
+  app.innerHTML = head("¡Listo!") + `<div class="card">
+    <div class="puntaje">${ac} / ${tot}</div>
+    <p class="lead" style="text-align:center">No se trata de acertar todo: lo importante es que ya sabes qué criterios mirar antes de elegir.</p>
+    ${NOMBRES.map((n, k) => `<div class="fila"><span>${n}</span><b>${estado.aciertos[k]} / ${TOTALES[k]}</b></div>`).join("")}
+    <a class="btn" href="../" style="text-decoration:none; text-align:center">Continuar con mi ejercicio</a>
+    <button class="btn sec" onclick="inicio()">Volver a jugar</button>
+    <div class="nota">Las 4 ideas para llevarte: liquidez, horizonte, volatilidad y moneda.</div>
+  </div>`;
+}
+
+inicio();
+</script>
+</body>
+</html>
