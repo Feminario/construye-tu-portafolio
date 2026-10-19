@@ -635,6 +635,8 @@
   .meta-prog{ margin-top:12px; }
   .meta-prog-t{ font-size:13px; color:var(--morado-oscuro); margin-bottom:6px; }
   .veh-meta{ font-size:12.5px; color:var(--morado-oscuro); background:rgba(223,243,175,0.5); border-radius:10px; padding:7px 10px; margin:6px 0; }
+  .brecha-call{ background:rgba(223,243,175,0.55); border-radius:14px; padding:12px 14px; font-size:14px; color:var(--morado-oscuro); margin:10px 0 12px; }
+  .donut.pie{ filter:drop-shadow(0 2px 4px rgba(126,132,174,0.25)); }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2175,17 +2177,25 @@ function copCorto(v){
   if(v >= 1e6) return "$" + (v / 1e6).toFixed(1).replace(".", ",").replace(",0", "") + " M";
   return cop(v);
 }
-function donutSVG(partes, centro){
+function donutSVG(partes, centro, anillo){
   const tot = partes.reduce((s, p) => s + (Number(p.v) || 0), 0);
   if(tot <= 0) return "";
   let acum = 0;
+  if(!anillo){
+    // Gráfico circular (pie chart): círculo completo dividido en porciones
+    const segs = partes.filter(p => p.v > 0).map(p => {
+      const pct = p.v / tot * 100, dash = Math.max(pct / 2 - 0.3, 0.1), off = 12.5 - acum / 2;
+      acum += pct;
+      return `<circle cx="21" cy="21" r="7.9577" fill="none" style="stroke:${p.color}" stroke-width="15.9155" stroke-dasharray="${dash} ${50 - dash}" stroke-dashoffset="${off}"></circle>`;
+    }).join("");
+    return `<svg viewBox="0 0 42 42" class="donut pie" role="img">${segs}</svg>`;
+  }
   const segs = partes.filter(p => p.v > 0).map(p => {
     const pct = p.v / tot * 100, dash = Math.max(pct - 0.8, 0.1), off = 25 - acum;
     acum += pct;
     return `<circle cx="21" cy="21" r="15.9155" fill="none" style="stroke:${p.color}" stroke-width="7" stroke-dasharray="${dash} ${100 - dash}" stroke-dashoffset="${off}"></circle>`;
   }).join("");
-  const txt = centro ? `<text x="21" y="20" text-anchor="middle" class="donut-t1">${esc(centro[0])}</text><text x="21" y="25.2" text-anchor="middle" class="donut-t2">${esc(centro[1])}</text>` : "";
-  return `<svg viewBox="0 0 42 42" class="donut" role="img"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(126,132,174,0.15)" stroke-width="7"></circle>${segs}${txt}</svg>`;
+  return `<svg viewBox="0 0 42 42" class="donut" role="img"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(126,132,174,0.15)" stroke-width="7"></circle>${segs}</svg>`;
 }
 function patrimonioHTML(b){
   const g = k => n0(b[k]);
@@ -2202,7 +2212,7 @@ function patrimonioHTML(b){
   if(total <= 0) return "";
   return `<div class="vehiculo-card">
     <h3>Así está distribuido mi patrimonio hoy</h3>
-    <div class="donut-uno">${donutSVG(items.map(x => ({ v:x.v, color:x.c })), ["Total activos", copCorto(total)])}</div>
+    <div class="donut-uno">${donutSVG(items.map(x => ({ v:x.v, color:x.c })))}<div class="donut-cap">Total activos: ${copCorto(total)}</div></div>
     ${items.map(x => `<div class="leyenda-fila"><i class="dot" style="background:${x.c}"></i><span class="ln">${x.n}</span><span class="lv">${cop(x.v)}</span><span class="lp">${Math.round(x.v / total * 100)}%</span></div>`).join("")}
   </div>`;
 }
@@ -2217,7 +2227,7 @@ function vehiculosCirculos(vs, proximo, sinImagen){
       <div class="circ"><div class="circ-v">${vs.length}</div><div class="circ-k">${vs.length === 1 ? "vehículo" : "vehículos"}</div></div>
       <div class="circ"><div class="circ-v">${esc(copCorto(total))}</div><div class="circ-k">destinado</div></div>
       ${dias !== null ? `<div class="circ"><div class="circ-v">${dias === 0 ? "hoy" : dias}</div><div class="circ-k">${dias === 0 ? "aporte" : (dias === 1 ? "día al aporte" : "días al aporte")}</div></div>` : ""}
-      <div class="circ circ-anillo">${donutSVG([{ v:prom, color:"#7E84AE" }, { v:Math.max(4 - prom, 0), color:"rgba(126,132,174,0.18)" }])}<div class="circ-centro"><div class="circ-v">${prom.toFixed(1).replace(".0", "")}/4</div><div class="circ-k">criterios</div></div></div>
+      <div class="circ circ-anillo">${donutSVG([{ v:prom, color:"#7E84AE" }, { v:Math.max(4 - prom, 0), color:"rgba(126,132,174,0.18)" }], null, true)}<div class="circ-centro"><div class="circ-v">${prom.toFixed(1).replace(".0", "")}/4</div><div class="circ-k">criterios</div></div></div>
     </div>`;
 }
 function vectorPct(b, r, vs){
@@ -2268,7 +2278,7 @@ function patrimonioDocHTML(b){
   const total = items.reduce((t, x) => t + x.v, 0);
   if(total <= 0) return "";
   return `<div class="doc-split">
-    <div class="doc-donut">${donutSVG(items.map(x => ({ v:x.v, color:x.c })), ["Total activos", copCorto(total)])}</div>
+    <div class="doc-donut">${donutSVG(items.map(x => ({ v:x.v, color:x.c })))}<div class="donut-cap">Total activos: ${copCorto(total)}</div></div>
     <div class="doc-leyenda">${items.map(x => `<div class="leyenda-fila"><i class="dot" style="background:${x.c}"></i><span class="ln">${x.n}</span><span class="lv">${cop(x.v)}</span><span class="lp">${Math.round(x.v / total * 100)}%</span></div>`).join("")}</div>
   </div>`;
 }
@@ -2511,7 +2521,7 @@ function listaVehiculosHTML(lista){
   return `<h3>Tus vehículos elegidos</h3>` + lista.map(x => `
     <div class="resumen-row"><span class="k">${esc(x.parteJardin||"")}</span><span class="v">${esc(x.vehiculoElegido||"")} · ${cop(x.monto_vehiculo_cop)}</span></div>`).join("");
 }
-function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; vehiculoEditando = null; pantallaBrecha(); }
+function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; vehiculoEditando = null; sesionV.desdePanel = true; pantallaBrecha(); }
 
 /* ============================================================
    PANTALLA 1 — BÚSQUEDA POR CORREO
@@ -2561,20 +2571,21 @@ async function buscarPersonaS2(){
    PANTALLA 2 — RESUMEN DE TU RANGO OBJETIVO (SESIÓN 1)
    ============================================================ */
 function pantallaResumenS1(){
-  const r = sesionV.rango_s1;
+  const r = sesionV.rango_s1, b = panelDatos.balance, vs = panelDatos.vehiculos_s2 || [];
+  const meta = r.metaPrincipal || (b && b.metaPrincipal) || "";
+  const sug = brechaSugerida();
+  const idealLinea = `${n0(r.rango_rentaVariable_pct)}% renta variable · ${n0(r.rango_rentaFija_pct)}% renta fija · ${n0(r.rango_liquidez_pct)}% liquidez · ${n0(r.injerto_pct)}% injerto`;
+  const hayRad = !!(b && mezclaReal(b));
   document.getElementById("app").innerHTML = `
     ${headerS2()}
     ${progreso(1,4,"Paso 1 de 4 · Tu punto de partida")}
     <div class="card">
       <h2>Hola, ${esc(sesionV.nombre.split(" ")[0] || "")} 👋</h2>
-      <p class="lead">Ya tienes la página 1 de tu Estrategia. Hoy le pones nombre propio.</p>
-      <div class="resumen-row"><span class="k">Horizonte elegido</span><span class="v">${esc(r.horizonteElegido||"")}</span></div>
-      <div class="resumen-row"><span class="k">Renta variable</span><span class="v">${esc(String(r.rango_rentaVariable_pct||0))}%</span></div>
-      <div class="resumen-row"><span class="k">Renta fija</span><span class="v">${esc(String(r.rango_rentaFija_pct||0))}%</span></div>
-      <div class="resumen-row"><span class="k">Liquidez</span><span class="v">${esc(String(r.rango_liquidez_pct||0))}%</span></div>
-      <div class="resumen-row"><span class="k">Injerto</span><span class="v">${esc(String(r.injerto_pct||0))}%</span></div>
-      <h3>Cómo estás hoy vs. tu objetivo</h3>
-      ${radiografiaHTML(panelDatos.balance, r)}
+      <p class="lead">Ya tienes la página 1 de tu Estrategia. Hoy le pones nombre propio: eliges el vehículo que cierra tu brecha más grande.</p>
+      ${meta ? `<div class="meta-card" style="margin-bottom:14px;"><div class="meta-et">🎯 Mi meta grande</div><div class="meta-t" style="font-size:24px;">${esc(meta)}</div>${r.horizonteElegido ? `<div class="meta-s">Horizonte elegido: ${esc(r.horizonteElegido.toLowerCase())}</div>` : ""}</div>` : ""}
+      <h3>Tu yo ideal vs. cómo estás hoy</h3>
+      ${hayRad ? radiografiaDonutsHTML(b, r, vs) : `<div class="microcopy">Tu yo ideal: ${idealLinea}.</div>`}
+      ${sug ? `<div class="brecha-call">⭐ Tu brecha más grande es <b>${esc(sug.nombre)}</b>: te faltan <b>${sug.gap} pts</b> para tu yo ideal. Hoy elegimos el vehículo que la cierra.</div>` : ""}
       <div class="microcopy">¿Es lo mismo tener varios ETFs en el portafolio que tener realmente diversificación? Hoy lo resolvemos.</div>
       <button class="btn" onclick="pantallaBrecha()">Continuar</button>
     </div>
@@ -2602,7 +2613,7 @@ function pantallaBrecha(){
       <p class="lead">Elige la parte de tu jardín donde la diferencia entre tu rango objetivo y lo que ya tienes sembrado es más grande.</p>
       <div class="opciones">${opciones}</div>
       <button class="btn" id="btn-continuar-brecha" onclick="irAMenu()" ${sesionV.brecha ? "" : "disabled"}>Ver vehículos para esta parte</button>
-      <button class="link-volver" onclick="pantallaResumenS1()">Volver</button>
+      <button class="link-volver" onclick="${sesionV.desdePanel ? "pantallaPanel()" : "pantallaResumenS1()"}">${sesionV.desdePanel ? "← Volver a mi panel" : "Volver"}</button>
     </div>
   `;
 }
@@ -2891,7 +2902,7 @@ function plazoMeta(horizonte, desde){
 
 function pantallaPanel(){
   const b = panelDatos.balance, r = panelDatos.rango_s1, vs = panelDatos.vehiculos_s2 || [];
-  sesion.editando = false; vehiculoEditando = null;
+  sesion.editando = false; vehiculoEditando = null; sesionV.desdePanel = false;
   sesionV.email = emailOrquestador || sesionV.email;
   const nombreCompleto = (r && r.nombre) || (b && b.nombre) || (vs[0] && vs[0].nombre) || sesionV.nombre || "";
   sesionV.nombre = nombreCompleto;
@@ -3069,6 +3080,7 @@ function continuarDeSesion1ASesion2(){
     nombre: p.nombre, horizonteElegido: sesion.horizonte,
     rango_rentaVariable_pct: r.rv, rango_rentaFija_pct: r.rf, rango_liquidez_pct: r.liq, injerto_pct: r.injerto
   };
+  sesionV.desdePanel = false;
   pantallaBrecha();
 }
 
