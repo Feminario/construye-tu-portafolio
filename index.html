@@ -608,6 +608,33 @@
   .circ-anillo{ border:none; padding:0; background:transparent; }
   .circ-anillo .donut{ position:absolute; inset:0; }
   .circ-centro{ position:relative; display:flex; flex-direction:column; align-items:center; }
+  /* ---- PDF: encabezado y complementos ---- */
+  .doc-head{ display:grid; grid-template-columns:150px 1fr 150px; gap:12px; align-items:center; }
+  .doc-head img.logo{ height:42px; justify-self:start; }
+  .doc-centro{ text-align:center; }
+  .doc-head > :last-child{ justify-self:end; }
+  .doc-ilus{ width:132px; height:auto; aspect-ratio:948 / 820; overflow:hidden; border-radius:18px; background:#C2CBFF; }
+  .doc-ilus img{ width:112%; max-width:none; margin-left:-9%; margin-top:0; display:block; }
+  .doc-meta.grande{ padding:16px 18px; }
+  .doc-et{ font-size:11.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--morado); }
+  .doc-meta-t{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:24px; color:var(--morado-oscuro); line-height:1.15; margin:4px 0; }
+  .doc-kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0; }
+  .doc-kpi{ background:rgba(194,203,255,0.3); border-radius:14px; padding:10px 12px; }
+  .doc-kpi-k{ font-size:11px; color:var(--texto-suave); font-weight:600; }
+  .doc-kpi-v{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:17px; color:var(--morado-oscuro); margin-top:2px; }
+  .doc-split{ display:flex; gap:16px; align-items:center; }
+  .doc-donut{ width:170px; flex-shrink:0; }
+  .doc-leyenda{ flex:1; min-width:0; }
+  .doc .donut-fila{ margin:4px 0 8px; }
+  .doc .donut-box{ max-width:130px; }
+  .doc .leyenda-fila{ padding:4px 0; font-size:12px; }
+  .doc .circulos{ justify-content:flex-start; }
+  .hito-doc{ background:rgba(206,162,221,0.28); }
+  .doc-nota-final{ font-size:11.5px; color:var(--texto-suave); margin-top:12px; }
+  .doc-pie{ display:flex; justify-content:space-between; }
+  .meta-prog{ margin-top:12px; }
+  .meta-prog-t{ font-size:13px; color:var(--morado-oscuro); margin-bottom:6px; }
+  .veh-meta{ font-size:12.5px; color:var(--morado-oscuro); background:rgba(223,243,175,0.5); border-radius:10px; padding:7px 10px; margin:6px 0; }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2179,19 +2206,71 @@ function patrimonioHTML(b){
     ${items.map(x => `<div class="leyenda-fila"><i class="dot" style="background:${x.c}"></i><span class="ln">${x.n}</span><span class="lv">${cop(x.v)}</span><span class="lp">${Math.round(x.v / total * 100)}%</span></div>`).join("")}
   </div>`;
 }
-function vehiculosCirculos(vs, proximo){
+function vehiculosCirculos(vs, proximo, sinImagen){
   if(!vs.length) return "";
   const total = vs.reduce((t, v) => t + n0(v.monto_vehiculo_cop), 0);
   const criterios = vs.map(v => Math.min(4, (v.criterios || "").split(";").filter(x => x.trim()).length));
   const prom = criterios.reduce((a, c) => a + c, 0) / vs.length;
   const dias = proximo ? diasHasta(proximo.d) : null;
-  return `<div class="veh-ilus"><img src="assets/camioneta.png" alt=""></div>
+  return `${sinImagen ? "" : `<div class="veh-ilus"><img src="assets/camioneta.png" alt=""></div>`}
     <div class="circulos">
       <div class="circ"><div class="circ-v">${vs.length}</div><div class="circ-k">${vs.length === 1 ? "vehículo" : "vehículos"}</div></div>
       <div class="circ"><div class="circ-v">${esc(copCorto(total))}</div><div class="circ-k">destinado</div></div>
       ${dias !== null ? `<div class="circ"><div class="circ-v">${dias === 0 ? "hoy" : dias}</div><div class="circ-k">${dias === 0 ? "aporte" : (dias === 1 ? "día al aporte" : "días al aporte")}</div></div>` : ""}
       <div class="circ circ-anillo">${donutSVG([{ v:prom, color:"#7E84AE" }, { v:Math.max(4 - prom, 0), color:"rgba(126,132,174,0.18)" }])}<div class="circ-centro"><div class="circ-v">${prom.toFixed(1).replace(".0", "")}/4</div><div class="circ-k">criterios</div></div></div>
     </div>`;
+}
+function vectorPct(b, r, vs){
+  const real = mezclaReal(b); if(!real || !r) return null;
+  const ideal = [n0(r.rango_rentaVariable_pct), n0(r.rango_rentaFija_pct), n0(r.rango_liquidez_pct), n0(r.injerto_pct)];
+  const base = [real.cop.rv, real.cop.rf, real.cop.liq, 0];
+  const add = [0, 0, 0, 0];
+  (vs || []).forEach(v => {
+    const f = MENU_VEHICULOS.find(x => x.nombre === v.parteJardin); if(!f) return;
+    const k = (f.clave === "ramas" || f.clave === "tronco") ? 0 : f.clave === "raices" ? 1 : f.clave === "agua" ? 2 : 3;
+    add[k] += n0(v.monto_vehiculo_cop);
+  });
+  const pct = arr => { const t = arr.reduce((a, x) => a + x, 0); return t > 0 ? arr.map(x => x / t * 100) : [0, 0, 0, 0]; };
+  const hoy = pct(base), despues = pct(base.map((x, i) => x + add[i]));
+  const dist = a => a.reduce((s, x, i) => s + Math.abs(ideal[i] - x), 0) / 2;
+  return { hoy, despues, ideal, antes: dist(hoy), tras: dist(despues), claves: ["Renta variable", "Renta fija", "Liquidez", "Injerto"] };
+}
+function cercaniaMeta(b, r, vs){
+  const m = vectorPct(b, r, vs); if(!m || m.antes <= 0) return null;
+  return Math.max(0, Math.min(100, Math.round((m.antes - m.tras) / m.antes * 100)));
+}
+function cercaniaMetaHTML(b, r, vs, meta){
+  if(!vs || !vs.length) return "";
+  const c = cercaniaMeta(b, r, vs); if(c === null) return "";
+  return `<div class="meta-prog"><div class="meta-prog-t">Con tus vehículos estás <b>${c}% más cerca</b> de tu yo ideal${meta ? " para llegar a tu meta" : ""}</div><div class="barra-pasos"><div style="width:${c}%"></div></div></div>`;
+}
+function aporteMetaHTML(b, r, v, meta){
+  const m1 = vectorPct(b, r, [v]); if(!m1 || m1.antes <= 0) return "";
+  const c = Math.round((m1.antes - m1.tras) / m1.antes * 100);
+  const f = MENU_VEHICULOS.find(x => x.nombre === v.parteJardin);
+  const idx = !f ? -1 : (f.clave === "ramas" || f.clave === "tronco") ? 0 : f.clave === "raices" ? 1 : f.clave === "agua" ? 2 : 3;
+  const det = idx >= 0 ? " " + m1.claves[idx] + ": de " + Math.round(m1.hoy[idx]) + "% a " + Math.round(m1.despues[idx]) + "% (ideal " + m1.ideal[idx] + "%)." : "";
+  return c > 0
+    ? `<div class="veh-meta">🎯 Esta acción te acerca <b>${c}%</b> a tu yo ideal${meta ? ", el que armaste para «" + esc(meta) + "»" : ""}.${det}</div>`
+    : `<div class="veh-meta">🎯 Este aporte no acerca tu mezcla a tu yo ideal: ya tienes suficiente en esta parte.${det}</div>`;
+}
+function patrimonioDocHTML(b){
+  const g = k => n0(b[k]);
+  const items = [
+    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#6E5AA8" },
+    { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#E2703D" },
+    { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#C14F86" },
+    { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#2F9E86" },
+    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#3E76D8" },
+    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#B58A2E" },
+    { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#9C3F55" }
+  ].filter(x => x.v > 0);
+  const total = items.reduce((t, x) => t + x.v, 0);
+  if(total <= 0) return "";
+  return `<div class="doc-split">
+    <div class="doc-donut">${donutSVG(items.map(x => ({ v:x.v, color:x.c })), ["Total activos", copCorto(total)])}</div>
+    <div class="doc-leyenda">${items.map(x => `<div class="leyenda-fila"><i class="dot" style="background:${x.c}"></i><span class="ln">${x.n}</span><span class="lv">${cop(x.v)}</span><span class="lp">${Math.round(x.v / total * 100)}%</span></div>`).join("")}</div>
+  </div>`;
 }
 function radiografiaDonutsHTML(b, r, vs){
   const filas = filasRadiografia(b, r, vs);
@@ -2299,7 +2378,7 @@ async function descargarPDF(){
     for(let i = 0; i < paginas.length; i++){
       const el = paginas[i], anterior = el.style.cssText;
       el.style.width = "794px"; el.style.maxWidth = "794px"; el.style.boxShadow = "none"; el.style.borderRadius = "0";
-      const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, windowWidth:900 });
+      const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, windowWidth:900, ignoreElements: n => n.id === "blobs" });
       el.style.cssText = anterior;
       const maxW = 190, maxH = 277;
       let w = maxW, h = canvas.height * w / canvas.width;
@@ -2330,6 +2409,19 @@ function pantallaEntregable(){
   const primer = vs.filter(v => v.primerPaso).map(v => v.primerPaso).join(" · ");
   const quien = `<div class="doc-quien">${esc(nombre)}<div class="doc-sub">${hoy}</div></div>`;
   const filasV = vs.map(v => `<tr><td>${esc(v.parteJardin||"")}</td><td>${esc(v.vehiculoElegido||"")}</td><td>${cop(v.monto_vehiculo_cop)}</td><td>${esc(v.fechaAporte || v.cuandoAportar || "")}</td><td>${esc(v.porQueCumple||"")}</td></tr>`).join("");
+  const kpiDoc = [];
+  if(b.patrimonioNeto_cop !== undefined && b.patrimonioNeto_cop !== "") kpiDoc.push(["Patrimonio neto", cop(b.patrimonioNeto_cop)]);
+  if(b.totalPasivos_cop !== undefined && b.totalPasivos_cop !== "") kpiDoc.push(["Lo que debo", cop(b.totalPasivos_cop)]);
+  if(b.mesesColchon !== undefined && b.mesesColchon !== "") kpiDoc.push(["Colchón de emergencia", Number(b.mesesColchon).toFixed(1).replace(".0", "") + " meses"]);
+  const kpiDocHTML = kpiDoc.length ? `<div class="doc-kpis">${kpiDoc.map(k => `<div class="doc-kpi"><div class="doc-kpi-k">${esc(k[0])}</div><div class="doc-kpi-v">${esc(k[1])}</div></div>`).join("")}</div>` : "";
+  const conFechaDoc = vs.map(v => ({ v, d: fechaDeVehiculo(v) })).filter(x => x.d && diasHasta(x.d) >= 0).sort((x, y) => x.d - y.d);
+  const hitoV = vs.find(v => v.primerPaso);
+  const hitoD = hitoV ? fechaDeVehiculo(hitoV) : null;
+  const cerc = cercaniaMeta(b, r, vs);
+  const filasV2 = vs.map(v => {
+    const c = Math.min(4, (v.criterios || "").split(";").filter(x => x.trim()).length);
+    return `<tr><td>${esc(v.parteJardin||"")}</td><td><b>${esc(v.vehiculoElegido||"")}</b></td><td>${cop(v.monto_vehiculo_cop)}</td><td>${esc(v.fechaAporte || v.cuandoAportar || "")}</td><td>${c ? `<b>${c}/4</b> · ` : ""}${esc(v.porQueCumple||"")}</td></tr>`;
+  }).join("");
   document.getElementById("app").innerHTML = `
     <div class="no-print acciones-doc">
       <button class="btn" id="btn-descargar" onclick="descargarPDF()">Descargar PDF</button>
@@ -2339,29 +2431,32 @@ function pantallaEntregable(){
       <section class="doc-page">
         <div class="doc-head">
           <img class="logo" src="assets/logo-feminario.png" alt="Feminario">
-          <div style="flex:1; text-align:center;"><h1 class="doc-titulo">Mi Estrategia de Inversión</h1><div class="doc-sub">Página 1 · Mi punto de partida</div></div>
+          <div class="doc-centro"><h1 class="doc-titulo">Mi Estrategia de Inversión</h1><div class="doc-sub">Página 1 · Mi punto de partida</div></div>
           ${quien}
         </div>
-        <div class="doc-meta"><b>Mi meta grande:</b> ${esc(meta)}${horiz ? " · " + esc(horiz) : ""}${palabras ? `<div class="frase">“${esc(palabras)}”</div>` : ""}</div>
-        <table><tr><th>Perfil de riesgo</th><th>Horizonte elegido</th><th>Patrimonio neto</th></tr>
-          <tr><td>${esc(perfil)}</td><td>${esc(r.horizonteElegido||"")}</td><td>${b.patrimonioNeto_cop !== undefined ? cop(b.patrimonioNeto_cop) : (r.patrimonioNeto_cop !== undefined ? cop(r.patrimonioNeto_cop) : "")}</td></tr></table>
+        <div class="doc-meta grande"><div class="doc-et">🎯 Mi meta grande</div><div class="doc-meta-t">${esc(meta)}</div>${horiz ? `<div class="doc-sub">Plazo: ${esc(horiz.toLowerCase())}</div>` : ""}${palabras ? `<div class="frase">“${esc(palabras)}”</div>` : ""}</div>
+        ${kpiDocHTML}
+        <h4>Así está distribuido mi patrimonio hoy</h4>
+        ${patrimonioDocHTML(b)}
         <h4>Mi radiografía: hoy vs. mi yo ideal</h4>
-        ${radiografiaHTML(b, r, [], { sinNota:true })}
-        ${r.nota ? `<div class="doc-sub" style="margin-top:6px;">Mi nota: ${esc(r.nota)}</div>` : ""}
+        ${radiografiaDonutsHTML(b, r, vs)}
+        <div class="doc-pie"><span>Feminario · Tu Portafolio, Tu Estrategia</span><span>1 / 2</span></div>
       </section>
       <section class="doc-page">
         <div class="doc-head">
           <img class="logo" src="assets/logo-feminario.png" alt="Feminario">
-          <div style="flex:1; text-align:center;"><h1 class="doc-titulo">Mis Vehículos Elegidos</h1><div class="doc-sub">Página 2 · Sesión 2</div></div>
+          <div class="doc-centro"><h1 class="doc-titulo">Mis Vehículos Elegidos</h1><div class="doc-sub">Página 2 · Sesión 2</div></div>
           <div class="doc-ilus"><img src="assets/camioneta.png" alt=""></div>
         </div>
         <h4>Mi yo ideal</h4>
-        <div class="doc-meta"><b>${n0(r.rango_rentaVariable_pct)}%</b> renta variable · <b>${n0(r.rango_rentaFija_pct)}%</b> renta fija · <b>${n0(r.rango_liquidez_pct)}%</b> liquidez · <b>${n0(r.injerto_pct)}%</b> injerto${sug ? `<br>Mi brecha más grande: ${esc(sug.nombre)} (me faltan ${sug.gap} pts)` : ""}</div>
+        <div class="doc-meta"><b>${n0(r.rango_rentaVariable_pct)}%</b> renta variable · <b>${n0(r.rango_rentaFija_pct)}%</b> renta fija · <b>${n0(r.rango_liquidez_pct)}%</b> liquidez · <b>${n0(r.injerto_pct)}%</b> injerto${sug ? `<br>Mi brecha más grande: <b>${esc(sug.nombre)}</b> (me faltan ${sug.gap} pts)` : ""}${(cerc !== null && vs.length) ? `<br>Con mis vehículos estoy <b>${cerc}% más cerca</b> de mi yo ideal para llegar a mi meta.` : ""}${r.nota ? `<div class="doc-sub" style="margin-top:4px;">Mi nota: ${esc(r.nota)}</div>` : ""}</div>
         ${mono && mono !== "Sin repetidos" ? `<h4>Chequeo de mono-cultivo</h4><div class="doc-meta">${esc(mono)}</div>` : ""}
         <h4>Mis vehículos</h4>
-        <table><tr><th>Parte del jardín</th><th>Vehículo</th><th>Monto</th><th>Fecha</th><th>Por qué cumple los 4 criterios</th></tr>${filasV}</table>
-        ${primer ? `<h4>Mi primer paso esta semana</h4><div class="doc-meta">${esc(primer)}</div>` : ""}
-        <div class="doc-pie">Categorías, no recomendaciones puntuales: confirma condiciones vigentes antes de decidir. · feminario.co</div>
+        <table><tr><th>Parte del jardín</th><th>Vehículo</th><th>Monto</th><th>Fecha</th><th>Criterios y por qué</th></tr>${filasV2}</table>
+        <div style="margin-top:12px;">${vehiculosCirculos(vs, conFechaDoc[0], true)}</div>
+        ${hitoV ? `<h4>Lo que haré esta semana</h4><div class="doc-meta hito-doc">🚩 <b>${esc(hitoV.primerPaso)}</b>${hitoD ? ` · ${esc(fechaEnTexto(hitoD))}` : ""}</div>` : ""}
+        <div class="doc-nota-final">Son categorías, no recomendaciones puntuales: confirma tasas, comisiones y condiciones vigentes antes de decidir.</div>
+        <div class="doc-pie"><span>Feminario · feminario.co</span><span>2 / 2</span></div>
       </section>
     </div>
   `;
@@ -2820,6 +2915,7 @@ function pantallaPanel(){
       <div class="meta-t">${esc(meta)}</div>
       ${palabras ? `<div class="meta-p">“${esc(palabras)}”</div>` : ""}
       ${(horiz || resta) ? `<div class="meta-s">${horiz ? "Plazo: " + esc(horiz.toLowerCase()) : ""}${resta ? " · quedan hasta " + resta : ""}</div>` : ""}
+      ${cercaniaMetaHTML(b, r, vs, meta)}
     </div>` : "";
   const lineas = [];
   if(b && b.mesesColchon !== undefined && b.mesesColchon !== "") lineas.push(`🛟 Tu colchón de emergencia cubre <b>${Number(b.mesesColchon).toFixed(1).replace(".0", "")} meses</b> de tus gastos.`);
@@ -2880,6 +2976,7 @@ function pantallaPanel(){
           ${(v.cuandoAportar || d) ? `<div class="veh-det">📅 ${esc(d ? fechaEnTexto(d) : v.cuandoAportar)}${d ? " · " + textoDias(diasHasta(d)) : ""}</div>` : ""}
           ${v.primerPaso ? `<div class="veh-det">👣 Esta semana: ${esc(v.primerPaso)}</div>` : ""}
           ${v.porQueCumple ? `<div class="veh-det">💬 ${esc(v.porQueCumple)}</div>` : ""}
+          ${aporteMetaHTML(b, r, v, meta)}
           <div class="panel-acciones">
             <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar</button>
             <button class="btn-mini peligro" onclick="quitarVehiculo('${esc(v.id)}')">Quitar</button>
