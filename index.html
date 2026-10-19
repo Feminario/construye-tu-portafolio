@@ -2190,13 +2190,13 @@ function donutSVG(partes, centro){
 function patrimonioHTML(b){
   const g = k => n0(b[k]);
   const items = [
-    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#6E5AA8" },
-    { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#E2703D" },
-    { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#C14F86" },
-    { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#2F9E86" },
-    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#3E76D8" },
-    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#B58A2E" },
-    { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#9C3F55" }
+    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#7E84AE" },
+    { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#CEA2DD" },
+    { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#F59356" },
+    { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#F7C175" },
+    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#4C4F68" },
+    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#C2CBFF" },
+    { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#DFF3AF" }
   ].filter(x => x.v > 0);
   const total = items.reduce((s, x) => s + x.v, 0);
   if(total <= 0) return "";
@@ -2257,13 +2257,13 @@ function aporteMetaHTML(b, r, v, meta){
 function patrimonioDocHTML(b){
   const g = k => n0(b[k]);
   const items = [
-    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#6E5AA8" },
-    { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#E2703D" },
-    { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#C14F86" },
-    { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#2F9E86" },
-    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#3E76D8" },
-    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#B58A2E" },
-    { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#9C3F55" }
+    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#7E84AE" },
+    { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#CEA2DD" },
+    { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#F59356" },
+    { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#F7C175" },
+    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#4C4F68" },
+    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#C2CBFF" },
+    { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#DFF3AF" }
   ].filter(x => x.v > 0);
   const total = items.reduce((t, x) => t + x.v, 0);
   if(total <= 0) return "";
@@ -2275,7 +2275,7 @@ function patrimonioDocHTML(b){
 function radiografiaDonutsHTML(b, r, vs){
   const filas = filasRadiografia(b, r, vs);
   if(!filas) return `<div class="microcopy">Aún no tenemos tu balance para comparar tu mezcla de hoy con tu objetivo.</div>`;
-  const colores = ["#7E84AE", "#B08968", "#5A9BD5", "#CEA2DD"];
+  const colores = ["#7E84AE", "#CEA2DD", "#F59356", "#DFF3AF"];
   const hayProy = filas.some(x => x.proy !== null);
   const dona = (titulo, f) => `<div class="donut-box">${donutSVG(filas.map((x, i) => ({ v:f(x), color:colores[i] })))}<div class="donut-cap">${titulo}</div></div>`;
   return `<div class="donut-fila">
