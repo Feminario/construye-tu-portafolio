@@ -561,6 +561,28 @@
   .rad-leyenda .sw.proy{ background:var(--lavanda); }
   .rad-proy{ position:absolute; left:0; top:0; height:100%; background:var(--lavanda); border-radius:999px; opacity:.85; }
   .rad-hoy{ position:relative; z-index:1; }
+  /* ---- Gráficos circulares ---- */
+  .donut{ display:block; width:100%; height:auto; overflow:visible; }
+  .donut-t1{ font-size:3px; font-weight:700; fill:#6E6B85; font-family:'Montserrat',sans-serif; }
+  .donut-t2{ font-size:4.6px; font-weight:800; fill:#4C4F68; font-family:'MuseoModerno','Montserrat',sans-serif; }
+  .donut-uno{ width:190px; max-width:70%; margin:6px auto 12px; }
+  .donut-fila{ display:flex; gap:10px; justify-content:center; margin:6px 0 12px; }
+  .donut-box{ flex:1 1 0; min-width:0; max-width:150px; text-align:center; }
+  .donut-cap{ font-size:11.5px; font-weight:700; color:var(--morado-oscuro); margin-top:6px; line-height:1.2; }
+  .leyenda-fila{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(126,132,174,0.18); font-size:12.5px; flex-wrap:wrap; }
+  .leyenda-fila:last-of-type{ border-bottom:none; }
+  .leyenda-fila .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; display:inline-block; }
+  .leyenda-fila .ln{ font-weight:700; color:var(--morado-oscuro); flex:1 1 110px; min-width:0; overflow-wrap:anywhere; }
+  .leyenda-fila .lv{ color:var(--texto-suave); overflow-wrap:anywhere; }
+  .leyenda-fila .lp{ font-weight:800; color:var(--morado-oscuro); }
+  .meta-card{ background:rgba(223,243,175,0.55); border-radius:20px; padding:16px 18px; margin:2px 0 14px; }
+  .meta-et{ font-size:11.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--morado); }
+  .meta-t{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:22px; color:var(--morado-oscuro); margin:4px 0; line-height:1.2; }
+  .meta-p{ font-style:italic; color:var(--morado-oscuro); font-size:14px; margin:4px 0; }
+  .meta-s{ font-size:12.5px; color:var(--texto-suave); }
+  .info-rapida{ font-size:13px; color:var(--texto); margin:0 0 14px; display:grid; gap:6px; }
+  .info-rapida > div{ padding:8px 12px; border-radius:12px; background:rgba(255,255,255,0.7); border:1px solid rgba(126,132,174,0.18); }
+  .paso-card, .paso-texto, .paso-fecha, .paso-titulo{ text-align:left; }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2093,6 +2115,65 @@ function radiografiaHTML(b, r, vs, opts){
 }
 
 /* ============================================================
+   GRÁFICOS CIRCULARES (donas)
+   ============================================================ */
+function copCorto(v){
+  v = Number(v) || 0;
+  if(v >= 1e9) return "$" + (v / 1e9).toFixed(1).replace(".", ",").replace(",0", "") + " mil M";
+  if(v >= 1e6) return "$" + (v / 1e6).toFixed(1).replace(".", ",").replace(",0", "") + " M";
+  return cop(v);
+}
+function donutSVG(partes, centro){
+  const tot = partes.reduce((s, p) => s + (Number(p.v) || 0), 0);
+  if(tot <= 0) return "";
+  let acum = 0;
+  const segs = partes.filter(p => p.v > 0).map(p => {
+    const pct = p.v / tot * 100, dash = Math.max(pct - 0.8, 0.1), off = 25 - acum;
+    acum += pct;
+    return `<circle cx="21" cy="21" r="15.9155" fill="none" style="stroke:${p.color}" stroke-width="7" stroke-dasharray="${dash} ${100 - dash}" stroke-dashoffset="${off}"></circle>`;
+  }).join("");
+  const txt = centro ? `<text x="21" y="20" text-anchor="middle" class="donut-t1">${esc(centro[0])}</text><text x="21" y="25.2" text-anchor="middle" class="donut-t2">${esc(centro[1])}</text>` : "";
+  return `<svg viewBox="0 0 42 42" class="donut" role="img"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(126,132,174,0.15)" stroke-width="7"></circle>${segs}${txt}</svg>`;
+}
+function patrimonioHTML(b){
+  const g = k => n0(b[k]);
+  const items = [
+    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#6E5AA8" },
+    { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#E2703D" },
+    { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#C14F86" },
+    { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#2F9E86" },
+    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#3E76D8" },
+    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#B58A2E" },
+    { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#9C3F55" }
+  ].filter(x => x.v > 0);
+  const total = items.reduce((s, x) => s + x.v, 0);
+  if(total <= 0) return "";
+  return `<div class="vehiculo-card">
+    <h3>Así está distribuido mi patrimonio hoy</h3>
+    <div class="donut-uno">${donutSVG(items.map(x => ({ v:x.v, color:x.c })), ["Total activos", copCorto(total)])}</div>
+    ${items.map(x => `<div class="leyenda-fila"><i class="dot" style="background:${x.c}"></i><span class="ln">${x.n}</span><span class="lv">${cop(x.v)}</span><span class="lp">${Math.round(x.v / total * 100)}%</span></div>`).join("")}
+    ${(b.totalPasivos_cop !== undefined && b.totalPasivos_cop !== "") ? `<div class="detalle-v" style="margin-top:8px;">Lo que debo: ${cop(b.totalPasivos_cop)} · Patrimonio neto: ${cop(b.patrimonioNeto_cop)}</div>` : ""}
+  </div>`;
+}
+function radiografiaDonutsHTML(b, r, vs){
+  const filas = filasRadiografia(b, r, vs);
+  if(!filas) return `<div class="microcopy">Aún no tenemos tu balance para comparar tu mezcla de hoy con tu objetivo.</div>`;
+  const colores = ["#7E84AE", "#B08968", "#5A9BD5", "#CEA2DD"];
+  const hayProy = filas.some(x => x.proy !== null);
+  const dona = (titulo, f) => `<div class="donut-box">${donutSVG(filas.map((x, i) => ({ v:f(x), color:colores[i] })))}<div class="donut-cap">${titulo}</div></div>`;
+  return `<div class="donut-fila">
+      ${dona("Hoy", x => x.real)}
+      ${hayProy ? dona("Con mis vehículos", x => x.proy || 0) : ""}
+      ${dona("Mi yo ideal", x => x.obj)}
+    </div>` +
+    filas.map((x, i) => {
+      const txt = x.gap >= 3 ? `Te faltan ${x.gap} pts` : x.gap <= -3 ? `Te sobran ${-x.gap} pts` : "En rango ✓";
+      const cls = x.gap >= 3 ? "falta" : x.gap <= -3 ? "sobra" : "ok";
+      return `<div class="leyenda-fila"><i class="dot" style="background:${colores[i]}"></i><span class="ln">${x.k}</span><span class="lv">${x.real}%${x.proy !== null ? " → " + x.proy + "%" : ""} · ideal ${x.obj}%</span><span class="lp rad-gap ${cls}" style="margin:0">${txt}</span></div>`;
+    }).join("");
+}
+
+/* ============================================================
    CHEQUEO DE MONO-CULTIVO
    ============================================================ */
 const TICKER_INDICE = {
@@ -2465,8 +2546,8 @@ function pantallaVehiculo(){
       <textarea id="in-quetenia" placeholder="Ej: ya tengo un ETF de tecnología de EE.UU., este nuevo es de mercados emergentes...">${esc(ve.queTeniaYa||"")}</textarea>
       <label>Nota libre <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
       <textarea id="in-nota" placeholder="Cualquier cosa que quieras recordar sobre esta decisión...">${esc(ve.nota||"")}</textarea>
-      <label>Mi primer paso esta semana</label>
-      <input type="text" id="in-primerpaso" value="${esc(ve.primerPaso||"")}" placeholder="Ej: abrir la cuenta y mover $200.000">
+      <label>Lo que haré esta semana <span style="font-weight:400; color:var(--texto-suave);">(mi primera acción, pequeña y concreta)</span></label>
+      <input type="text" id="in-primerpaso" value="${esc(ve.primerPaso||"")}" placeholder="Ej: abrir la cuenta en el banco o transferir el primer aporte">
       <label>¿Qué te gustaría aprender sobre vehículos de inversión? <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
       <div class="crit-checks">${APRENDER_OPCIONES.map(o => `<label class="chip"><input type="checkbox" class="ap-chk" value="${esc(o)}" ${(ve.quiereAprender||"").includes(o) ? "checked" : ""}> ${o}</label>`).join("")}</div>
       <textarea id="in-aprender" placeholder="¿Algo más que quieras aprender?"></textarea>
@@ -2689,38 +2770,41 @@ function pantallaPanel(){
   const avance = `<div class="barra-pasos"><div style="width:${hechos / 3 * 100}%"></div></div>
     <div class="pasos-txt">${hechos} de 3 pasos · Balance ${pasos[0] ? "✓" : "○"} · Rango ${pasos[1] ? "✓" : "○"} · Vehículos ${pasos[2] ? "✓" : "○"}</div>`;
 
-  /* Indicadores clave */
-  const totalVeh = vs.reduce((s, v) => s + n0(v.monto_vehiculo_cop), 0);
+  /* Meta grande e información rápida */
   const conFecha = vs.map(v => ({ v, d: fechaDeVehiculo(v) })).filter(x => x.d && diasHasta(x.d) >= 0).sort((a, c) => a.d - c.d);
   const proximo = conFecha[0];
-  const kpis = [];
-  if(b && b.patrimonioNeto_cop !== undefined && b.patrimonioNeto_cop !== "") kpis.push([cop(b.patrimonioNeto_cop), "Patrimonio neto"]);
-  if(b && b.mesesColchon !== undefined && b.mesesColchon !== "") kpis.push([Number(b.mesesColchon).toFixed(1).replace(".0", "") + " meses", "Colchón de emergencia"]);
-  if(vs.length) kpis.push([cop(totalVeh), "Destinado a mis vehículos"]);
-  if(proximo) kpis.push([textoDias(diasHasta(proximo.d)), "Próximo aporte · " + (proximo.v.vehiculoElegido || "")]);
-  kpis.push([textoDias(diasHasta(FECHA_SESION3)), "Próxima sesión · 29 de octubre"]);
   const meta = (r && r.metaPrincipal) || (b && b.metaPrincipal) || "";
   const horiz = (r && r.metaHorizonteOriginal) || (b && b.metaHorizonte) || "";
   const resta = plazoMeta(horiz, (b && b.fecha) || (r && r.fecha));
-  const tilesMeta = meta ? `<div class="kpi ancho"><div class="kpi-v">${esc(meta)}</div><div class="kpi-k">Mi meta${horiz ? " · plazo " + esc(horiz.toLowerCase()) : ""}${resta ? " · quedan hasta " + resta : ""}</div></div>` : "";
-  const kpiHTML = `<div class="kpi-grid">${tilesMeta}${kpis.map(k => `<div class="kpi"><div class="kpi-v">${esc(k[0])}</div><div class="kpi-k">${esc(k[1])}</div></div>`).join("")}</div>`;
+  const palabras = (b && b.metaPalabras) || (r && r.metaPalabras) || "";
+  const cardMeta = meta ? `<div class="meta-card">
+      <div class="meta-et">Mi meta grande</div>
+      <div class="meta-t">${esc(meta)}</div>
+      ${palabras ? `<div class="meta-p">“${esc(palabras)}”</div>` : ""}
+      ${(horiz || resta) ? `<div class="meta-s">${horiz ? "Plazo: " + esc(horiz.toLowerCase()) : ""}${resta ? " · quedan hasta " + resta : ""}</div>` : ""}
+    </div>` : "";
+  const lineas = [];
+  if(b && b.mesesColchon !== undefined && b.mesesColchon !== "") lineas.push(`🛟 Tu colchón de emergencia cubre <b>${Number(b.mesesColchon).toFixed(1).replace(".0", "")} meses</b> de tus gastos.`);
+  lineas.push(`📅 Próxima sesión: <b>29 de octubre</b> (${textoDias(diasHasta(FECHA_SESION3))}).`);
+  const infoRapida = `<div class="info-rapida">${lineas.map(l => `<div>${l}</div>`).join("")}</div>`;
 
   /* Primer paso */
   const conPaso = vs.filter(v => v.primerPaso);
   const pasoV = (proximo && proximo.v.primerPaso) ? proximo : (conPaso[0] ? { v: conPaso[0], d: fechaDeVehiculo(conPaso[0]) } : null);
   const cardPaso = pasoV ? `
     <div class="paso-card">
-      <div class="paso-titulo">👣 Mi primer paso</div>
+      <div class="paso-titulo">👣 Lo que haré esta semana</div>
       <div class="paso-texto">${esc(pasoV.v.primerPaso)}</div>
       ${pasoV.d ? `<div class="paso-fecha">📅 ${esc(fechaEnTexto(pasoV.d))} · ${textoDias(diasHasta(pasoV.d))}</div>` : (pasoV.v.cuandoAportar ? `<div class="paso-fecha">📅 ${esc(pasoV.v.cuandoAportar)}</div>` : "")}
     </div>` : "";
 
-  /* Radiografía */
+  /* Radiografía y patrimonio en gráficos circulares */
   const cardRadiografia = (b && r && mezclaReal(b)) ? `
     <div class="vehiculo-card">
       <h3>Mi radiografía: hoy vs. mi yo ideal</h3>
-      ${radiografiaHTML(b, r, vs)}
+      ${radiografiaDonutsHTML(b, r, vs)}
     </div>` : "";
+  const cardPatrimonio = b ? patrimonioHTML(b) : "";
 
   const cardBalance = b ? `
     <div class="vehiculo-card compacta">
@@ -2744,7 +2828,7 @@ function pantallaPanel(){
           <div class="veh-top"><b>${esc(v.vehiculoElegido || "")}</b><span>${cop(v.monto_vehiculo_cop)}</span></div>
           <div class="veh-parte">${esc(v.parteJardin || "")}${cumple ? " · cumple " + cumple + " de 4 criterios" : ""}</div>
           ${(v.cuandoAportar || d) ? `<div class="veh-det">📅 ${esc(d ? fechaEnTexto(d) : v.cuandoAportar)}${d ? " · " + textoDias(diasHasta(d)) : ""}</div>` : ""}
-          ${v.primerPaso ? `<div class="veh-det">👣 Primer paso: ${esc(v.primerPaso)}</div>` : ""}
+          ${v.primerPaso ? `<div class="veh-det">👣 Esta semana: ${esc(v.primerPaso)}</div>` : ""}
           ${v.porQueCumple ? `<div class="veh-det">💬 ${esc(v.porQueCumple)}</div>` : ""}
           <div class="panel-acciones">
             <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar</button>
@@ -2772,9 +2856,11 @@ function pantallaPanel(){
     <div class="card">
       <p class="lead">Hola${nombre ? ", " + esc(nombre) : ""} 👋 Así va tu Estrategia de Inversión.</p>
       ${avance}
-      ${kpiHTML}
-      ${cardPaso}
+      ${cardMeta}
+      ${cardPatrimonio}
       ${cardRadiografia}
+      ${infoRapida}
+      ${cardPaso}
       ${cardVehiculos}
       ${cardRango}${cardBalance}
       ${botonEntregable}
