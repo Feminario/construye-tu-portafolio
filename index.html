@@ -637,6 +637,21 @@
   .veh-meta{ font-size:12.5px; color:var(--morado-oscuro); background:rgba(223,243,175,0.5); border-radius:10px; padding:7px 10px; margin:6px 0; }
   .brecha-call{ background:rgba(223,243,175,0.55); border-radius:14px; padding:12px 14px; font-size:14px; color:var(--morado-oscuro); margin:10px 0 12px; }
   .donut.pie{ filter:drop-shadow(0 2px 4px rgba(126,132,174,0.25)); }
+  /* ---- Catálogo de vehículos por parte del jardín ---- */
+  .filtros{ display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 10px; }
+  .filtro{ padding:6px 12px; border-radius:999px; border:1.5px solid var(--periwinkle); background:#fff; color:var(--morado-oscuro); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+  .filtro.sel{ background:var(--morado); border-color:var(--morado); color:#fff; }
+  .cat-card{ background:#fff; border:2px solid var(--periwinkle); border-radius:18px; padding:14px 14px 12px; margin:10px 0; }
+  .cat-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .cat-n{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:17px; color:var(--morado-oscuro); line-height:1.2; }
+  .cat-pais{ font-size:11px; font-weight:700; background:rgba(206,162,221,0.3); color:var(--morado-oscuro); border-radius:999px; padding:3px 9px; white-space:nowrap; flex-shrink:0; }
+  .cat-que{ font-size:13.5px; margin:8px 0; }
+  .cat-perfil{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+  .cat-perfil .pf{ font-size:11.5px; background:rgba(194,203,255,0.35); border-radius:999px; padding:4px 9px; color:var(--morado-oscuro); }
+  .cat-ej{ font-size:12.5px; color:var(--texto-suave); margin:4px 0; }
+  .cat-ojo{ font-size:12.5px; color:var(--morado-oscuro); margin:4px 0 8px; }
+  .cat-elegido{ background:rgba(223,243,175,0.55); border-radius:16px; padding:12px 14px; margin:0 0 12px; font-size:13.5px; }
+  .cat-elegido b{ font-family:'MuseoModerno','Montserrat',sans-serif; font-size:16px; color:var(--morado-oscuro); }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -1147,6 +1162,7 @@ function pantallaBienvenida(){
       <label>Tu edad</label>
       <input type="number" id="in-edad" placeholder="Ej: 34">
       <button class="btn" onclick="empezarPerfil()">Empezar</button>
+      ${botonVolverPanel()}
       <div class="footer-nota">Tus datos son privados dentro de Feminario. Los usamos para tu resultado y para diseñar las sesiones de construcción de portafolio que arrancan el 24 de septiembre.</div>
     </div>
   `;
@@ -1182,6 +1198,7 @@ function pantallaRiesgo(state){
         </div>
       `).join("")}
       <button class="btn" onclick="guardarRiesgo()">Ver mi perfil y continuar</button>
+      ${botonVolverPanel()}
       ${progreso(1,5)}
     </div>
   `;
@@ -1255,6 +1272,7 @@ function pantallaMetas(state){
 
       <button class="btn" onclick="guardarMetas()">Continuar a mi portafolio</button>
       <button class="link-volver" onclick="pantallaRiesgo(getState())">← Volver a mi perfil de riesgo</button>
+      ${botonVolverPanel()}
       ${progreso(2,5)}
     </div>
   `;
@@ -1296,6 +1314,7 @@ function pantallaRetorno(state){
       <button class="btn" onclick="irAActualizar()">Actualizar mis números de este mes</button>
       <button class="btn secundario" onclick="pantallaResultado(getState(), getState().historial[getState().historial.length-1])">Ver el detalle de mi último corte</button>
       <button class="link-volver" onclick="pantallaRiesgo(getState())">Actualizar mi perfil de riesgo o mis metas</button>
+      ${botonVolverPanel()}
     </div>
   `;
 }
@@ -1367,6 +1386,7 @@ function pantallaActivos(state){
       </div>
       ${ASSET_CATS.map(grupoActivo).join("")}
       <button class="btn" onclick="guardarActivos()">Siguiente: tus deudas</button>
+      ${botonVolverPanel()}
       ${progreso(3,5)}
     </div>
   `;
@@ -1410,6 +1430,7 @@ function pantallaPasivos(state){
       `).join("")}
       <button class="btn" onclick="guardarPasivos()">Siguiente: tu gasto mensual</button>
       <button class="link-volver" onclick="pantallaActivos(getState())">← Volver a mis activos</button>
+      ${botonVolverPanel()}
       ${progreso(4,5)}
     </div>
   `;
@@ -1433,6 +1454,7 @@ function pantallaContexto(state){
       ${renderListaMonto('gastoMensual', 'Ej: 2500000')}
       <button class="btn" onclick="verResultado()">Ver mi balance de portafolio</button>
       <button class="link-volver" onclick="pantallaPasivos(getState())">← Volver a mis deudas</button>
+      ${botonVolverPanel()}
     </div>
   `;
 }
@@ -1445,6 +1467,7 @@ function verResultado(){
   const snapshot = calcularSnapshot(draft, tasas);
   state.historial.push(snapshot);
   saveState(state);
+  ultimoSnapshotGuardado = snapshot;                 // para que, si venía del panel, este se muestre al volver
 
   const coherencia = evaluarCoherencia(state.perfilRiesgo, state.metas, snapshot.activos, snapshot.totales.totalActivos);
   enviarABaseDeDatos(construirPayloadPlano(state, snapshot, coherencia));
@@ -1559,6 +1582,7 @@ function pantallaResultado(state, snapshot){
       ${comparativoHtml}
 
       <button class="btn" onclick="continuarDeBalanceASesion1()">Continuar a mi Rango Objetivo &rarr;</button>
+      ${botonVolverPanel("principal")}
 
       <div class="explorar">
         <h3>Vuelve el próximo mes</h3>
@@ -1759,6 +1783,7 @@ function pantallaResumen(){
       <div class="resumen-row"><span class="k">En cuánto tiempo</span><span class="v">${esc(p.metaHorizonte)}</span></div>
       <div class="resumen-row"><span class="k">Patrimonio neto</span><span class="v">${cop(p.patrimonioNeto_cop)}</span></div>
       <button class="btn" onclick="pantallaSplit()">Empezar el ejercicio</button>
+      ${botonVolverPanel()}
       <button class="link-volver" onclick="pantallaInicioUnificado()">← Usar otro correo</button>
       ${progreso(1,4,"Paso 1 de 4 · Tu punto de partida")}
     </div>
@@ -1793,6 +1818,7 @@ function pantallaSplit(){
 
       <button class="btn" onclick="pantallaHorizonte()">Siguiente: tu horizonte</button>
       <button class="link-volver" onclick="pantallaResumen()">← Volver</button>
+      ${botonVolverPanel()}
       ${progreso(2,4,"Paso 2 de 4 · Estructural vs. invertible")}
     </div>
   `;
@@ -1814,6 +1840,7 @@ function pantallaHorizonte(){
       <div class="microcopy">💡 Si sientes que tu meta está más próxima de lo que sugiere tu test, muévete a un horizonte más corto acá. Eso te acerca al lado más conservador de tu fila en la matriz.</div>
       <button class="btn" onclick="pantallaMatriz()">Ver mi rango de referencia</button>
       <button class="link-volver" onclick="pantallaSplit()">← Volver</button>
+      ${botonVolverPanel()}
       ${progreso(3,4,"Paso 3 de 4 · Tu horizonte")}
     </div>
   `;
@@ -1869,6 +1896,7 @@ function pantallaMatriz(){
 
       <button class="btn" onclick="pantallaFinal(${rvDef}, ${rfDef}, ${liqDef})">Definir mi rango final</button>
       <button class="link-volver" onclick="pantallaHorizonte()">← Volver</button>
+      ${botonVolverPanel()}
       ${progreso(4,4,"Paso 4 de 4 · Tu rango de referencia")}
     </div>
   `;
@@ -1899,6 +1927,7 @@ function pantallaFinal(rv, rf, liq, extra){
 
       <button class="btn" id="btn-guardar" onclick="guardarRango()">${sesion.editando ? "Guardar cambios" : "Guardar mi rango objetivo"}</button>
       <button class="link-volver" onclick="${sesion.editando ? "sesion.editando=false; pantallaPanel()" : "pantallaMatriz()"}">← Volver</button>
+      ${botonVolverPanel()}
     </div>
   `;
   chequearSuma();
@@ -1986,6 +2015,7 @@ function pantallaConfirmacionS1(){
 
       <button class="btn" onclick="continuarDeSesion1ASesion2()">Continuar a elegir mi vehículo &rarr;</button>
       <button class="btn secundario" onclick="pantallaFinal(sesion.rango.rv, sesion.rango.rf, sesion.rango.liq, {injerto:sesion.rango.injerto, nota:sesion.rango.nota})">Editar mi rango</button>
+      ${botonVolverPanel("principal")}
       <div class="footer-nota">Tu rango quedó guardado. Este es el primer pedazo del documento que vas a seguir construyendo en las próximas sesiones.</div>
     </div>
   `;
@@ -2093,6 +2123,90 @@ const EXTRA_EJEMPLOS = {
   ]
 };
 Object.keys(EXTRA_EJEMPLOS).forEach(k => { const f = filaMenu(k); if(f) f.ejemplos = f.ejemplos.concat(EXTRA_EJEMPLOS[k]); });
+
+/* ============================================================
+   CATÁLOGO DE VEHÍCULOS POR PARTE DEL JARDÍN (Sesión 2)
+   Categorías para entender y diferenciar cada vehículo; no son recomendaciones puntuales.
+   Tasas, comisiones y requisitos cambian: confirmar condiciones vigentes antes de decidir.
+   ============================================================ */
+const CATALOGO_VEHICULOS = {
+  raices: [
+    { n:"CDT", pais:"Colombia", moneda:"COP", que:"Le prestas plata a un banco por un plazo fijo (90 a 360 días) y él te paga una tasa pactada.", ej:"CDTs de Bancolombia, Davivienda o BBVA", liq:"Baja: retirar antes cuesta penalidad", hor:"Meses a pocos años", vol:"Muy baja", ojo:"Plazo, penalidad por retiro anticipado y si está cubierto por Fogafín." },
+    { n:"FIC de renta fija", pais:"Colombia", moneda:"COP", que:"Fondo donde juntas plata con otras personas y la administra una fiduciaria que invierte en deuda.", ej:"Fondos de Fiduciaria Bancolombia o Alianza Fiduciaria", liq:"Media: depende del pacto de permanencia", hor:"Meses a pocos años", vol:"Baja", ojo:"Comisión de administración y pacto de permanencia." },
+    { n:"TES", pais:"Colombia", moneda:"COP", que:"Bonos del gobierno colombiano: le prestas al Estado y te paga intereses.", ej:"TES vía comisionista de bolsa", liq:"Media: se pueden vender, pero su precio varía", hor:"Varios años", vol:"Baja a media", ojo:"El precio del bono se mueve si cambian las tasas de interés." },
+    { n:"Cetes", pais:"México", moneda:"MXN", que:"Certificados de la Tesorería de México a 28, 91 o 182 días: el equivalente mexicano del CDT.", ej:"Cetes en Cetesdirecto", liq:"Baja: se espera al vencimiento", hor:"Semanas a meses", vol:"Muy baja", ojo:"Moneda: pesos mexicanos, no los tuyos si gastas en otra." },
+    { n:"Treasury bonds", pais:"EE.UU.", moneda:"USD", que:"Bonos del Tesoro de EE.UU.: le prestas al gobierno americano.", ej:"Treasuries vía un bróker internacional", liq:"Media: se pueden vender en el mercado", hor:"Meses a años", vol:"Baja", ojo:"Riesgo de cambio si tus gastos son en pesos y topes de declaración en el exterior." },
+    { n:"ETF de bonos", pais:"EE.UU. / Global", moneda:"USD", que:"Un solo fondo que agrupa cientos de bonos y cotiza en bolsa.", ej:"BND, AGG", liq:"Alta: se vende en bolsa", hor:"Varios años", vol:"Baja a media", ojo:"Costo anual del fondo y riesgo de cambio." },
+    { n:"Oro", pais:"Cualquiera", moneda:"Varias", que:"Refugio: tiende a subir cuando el resto del portafolio cae. Puede ser físico o por un ETF.", ej:"Oro físico o ETF GLD", liq:"Media a alta", hor:"Varios años", vol:"Media", ojo:"No genera intereses y su precio también se mueve." },
+    { n:"Tesouro Direto / CDB", pais:"Brasil", moneda:"BRL", que:"Bonos del gobierno (Tesouro Selic o IPCA+) y depósitos bancarios (CDB, LCI/LCA) en Brasil.", ej:"Tesouro Direto, CDB", liq:"Baja a media", hor:"Meses a años", vol:"Baja", ojo:"Moneda y condiciones de cada título." },
+    { n:"Depósitos y bonos", pais:"Perú", moneda:"PEN", que:"Depósitos a plazo, fondos mutuos de renta fija y bonos soberanos en Perú.", ej:"Depósitos a plazo y fondos mutuos locales", liq:"Baja a media", hor:"Meses a años", vol:"Baja", ojo:"Plazos y comisiones del fondo." },
+    { n:"Plazo fijo / FCI de renta fija", pais:"Argentina", moneda:"ARS / USD", que:"Plazo fijo bancario, fondos comunes de inversión de renta fija y bonos.", ej:"Plazo fijo, FCI de renta fija", liq:"Baja a media", hor:"Meses a años", vol:"Baja a media", ojo:"Inflación y riesgo país." },
+    { n:"Letras del Tesoro / depósitos", pais:"España / Europa", moneda:"EUR", que:"Letras del Tesoro, depósitos a plazo y fondos monetarios o de bonos en euros.", ej:"Letras del Tesoro, depósitos a plazo", liq:"Baja a media", hor:"Meses a años", vol:"Baja", ojo:"Moneda: euros." },
+    { n:"GIC y ETF de bonos", pais:"Canadá", moneda:"CAD", que:"Certificados de inversión garantizados (GIC) y ETFs de bonos en Canadá.", ej:"GICs bancarios", liq:"Baja", hor:"Meses a años", vol:"Baja", ojo:"Plazo del certificado." }
+  ],
+  tronco: [
+    { n:"ETF COLCAP", pais:"Colombia", moneda:"COP", que:"Un fondo que sigue el COLCAP: las acciones más grandes de la bolsa colombiana.", ej:"ICOLCAP vía comisionista local (Casa de Bolsa, Acciones y Valores)", liq:"Alta: se vende en bolsa", hor:"Varios años", vol:"Media", ojo:"Costo anual del fondo y concentración en un solo país." },
+    { n:"ETF del S&P 500", pais:"EE.UU.", moneda:"USD", que:"Un fondo que sigue las 500 empresas más grandes de EE.UU.", ej:"VOO, SPY", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Costo anual, riesgo de cambio y topes de declaración en el exterior (DIAN)." },
+    { n:"ETF de todo el mercado de EE.UU.", pais:"EE.UU.", moneda:"USD", que:"Sigue todo el mercado de EE.UU., no solo las empresas grandes.", ej:"VTI", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Se parece mucho al S&P 500: si tienes los dos, repites la apuesta." },
+    { n:"ETF internacional diversificado", pais:"Fuera de EE.UU.", moneda:"USD", que:"Empresas de Europa, Asia y mercados emergentes en un solo fondo.", ej:"VXUS", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Costo anual y riesgo de cambio." },
+    { n:"ETF del mundo entero", pais:"Global", moneda:"USD", que:"Todo el mercado mundial en un solo fondo.", ej:"VT", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Costo anual y riesgo de cambio." },
+    { n:"NAFTRAC", pais:"México", moneda:"MXN", que:"Fondo que sigue el IPC, el índice de la bolsa mexicana.", ej:"NAFTRAC", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Concentración en México." },
+    { n:"ETF del IPSA", pais:"Chile", moneda:"CLP", que:"Fondo que sigue el IPSA, el índice de la bolsa chilena.", ej:"ETF sobre el IPSA", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Concentración en Chile." },
+    { n:"ETF Euro Stoxx 50 / DAX", pais:"Europa", moneda:"EUR", que:"Sigue las 50 empresas más grandes de la eurozona o el DAX alemán.", ej:"ETF sobre Euro Stoxx 50 o DAX", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Moneda: euros." },
+    { n:"BOVA11 / IVVB11", pais:"Brasil", moneda:"BRL", que:"BOVA11 sigue el Ibovespa; IVVB11 sigue el S&P 500 pero en reales.", ej:"BOVA11, IVVB11", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Moneda y concentración." },
+    { n:"CEDEARs", pais:"Argentina", moneda:"ARS", que:"Certificados que representan ETFs o acciones del exterior, como los que siguen al S&P 500.", ej:"CEDEAR del S&P 500", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Cómo se calcula su precio frente al dólar." },
+    { n:"ETF de acciones globales todo en uno", pais:"Canadá", moneda:"CAD", que:"Un solo ETF con acciones del mundo, listo para mantener.", ej:"VEQT, XEQT", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Costo anual del fondo." },
+    { n:"ETF o fondo indexado en euros", pais:"España / Europa", moneda:"EUR", que:"Replica el S&P 500 o el MSCI World, en euros.", ej:"ETF o fondo indexado", liq:"Alta", hor:"Varios años", vol:"Media", ojo:"Costo anual y comisiones del bróker." }
+  ],
+  ramas: [
+    { n:"Acciones de tecnología", pais:"EE.UU. / LatAm", moneda:"USD", que:"Empresas individuales de tecnología. En LatAm, MercadoLibre, la \"Amazon\" de la región.", ej:"Apple, Microsoft, MercadoLibre", liq:"Alta", hor:"Varios años, con margen para caídas", vol:"Alta", ojo:"Una sola empresa puede caer mucho." },
+    { n:"ETF de tecnología", pais:"EE.UU.", moneda:"USD", que:"Un fondo con las empresas de tecnología de EE.UU.", ej:"XLK", liq:"Alta", hor:"Varios años, con margen para caídas", vol:"Alta", ojo:"Concentra todo en un solo sector." },
+    { n:"Energía", pais:"EE.UU. / Colombia", moneda:"USD / COP", que:"El sector energético: un ETF o acciones de petroleras.", ej:"XLE, Ecopetrol (cotiza en Colombia y Nueva York)", liq:"Alta", hor:"Varios años, con margen para caídas", vol:"Alta", ojo:"Depende del precio del petróleo." },
+    { n:"Salud", pais:"EE.UU.", moneda:"USD", que:"Un fondo con las empresas del sector salud.", ej:"XLV", liq:"Alta", hor:"Varios años, con margen para caídas", vol:"Media a alta", ojo:"Concentra todo en un solo sector." },
+    { n:"Mercados emergentes concentrados", pais:"China, India, Brasil", moneda:"USD", que:"Una apuesta geográfica puntual, no diversificación amplia.", ej:"FXI (China), INDA (India), EWZ (Brasil)", liq:"Alta", hor:"Varios años, con margen para caídas", vol:"Alta", ojo:"Riesgo país y riesgo de cambio." },
+    { n:"Empresas pequeñas (small caps)", pais:"EE.UU.", moneda:"USD", que:"Empresas más pequeñas: más riesgo y más volatilidad que el tronco.", ej:"IWM", liq:"Alta", hor:"Varios años, con margen para caídas", vol:"Alta", ojo:"Cae más fuerte cuando el mercado cae." }
+  ],
+  agua: [
+    { n:"Cuenta de ahorro remunerada", pais:"Colombia", moneda:"COP", que:"Cuenta de un neobanco que paga intereses y te deja sacar la plata cuando quieras.", ej:"Nu, Lulo Bank, RappiPay", liq:"Inmediata", hor:"Ninguno: se puede necesitar ya", vol:"Muy baja", ojo:"Que el retiro sea inmediato o de 1 a 2 días." },
+    { n:"FIC de muy corto plazo", pais:"Colombia", moneda:"COP", que:"Fondo de inversión colectiva que invierte en instrumentos de muy corto plazo.", ej:"FICs a la vista de fiduciarias", liq:"1 a 2 días", hor:"Ninguno: se puede necesitar ya", vol:"Muy baja", ojo:"Comisión y rapidez del retiro." },
+    { n:"Cuenta en dólares / money market", pais:"EE.UU. / Global", moneda:"USD", que:"Cuenta de ahorro en dólares vía un bróker internacional, o fondos money market. Útil si ganas o gastas en dólares.", ej:"Cuenta de ahorro en USD, money market funds", liq:"1 a 3 días", hor:"Ninguno: se puede necesitar ya", vol:"Muy baja", ojo:"Riesgo de cambio si tus gastos son en pesos." },
+    { n:"Cuentas remuneradas en euros", pais:"España / Europa", moneda:"EUR", que:"Cuentas de bancos digitales europeos, para quien gana o gasta en euros.", ej:"Cuentas remuneradas digitales", liq:"Inmediata a 1-2 días", hor:"Ninguno: se puede necesitar ya", vol:"Muy baja", ojo:"Moneda: euros." },
+    { n:"Cuentas y fondos a la vista", pais:"México, Perú, Brasil, Argentina, Canadá", moneda:"Local", que:"Cuentas remuneradas y fondos de muy corto plazo en la moneda de cada país: CDB con liquidez diaria en Brasil, money market en Argentina, HISA en Canadá.", ej:"Cuentas remuneradas, CDB con liquidez diaria, HISA", liq:"Inmediata a 1-2 días", hor:"Ninguno: se puede necesitar ya", vol:"Muy baja", ojo:"Que puedas sacar sin penalidad." }
+  ],
+  injerto: [
+    { n:"Bitcoin o Ethereum", pais:"Global", moneda:"Varias", que:"Criptomonedas compradas en un exchange regulado. Se venden en segundos, pero su precio puede caer 30% en una semana.", ej:"Binance, Bitso, Buda", liq:"Alta, pero el precio es muy volátil", hor:"Sin límite, con plata que puedes perder", vol:"Muy alta", ojo:"Máximo 5-10% del portafolio total." },
+    { n:"Tu propio emprendimiento", pais:"Cualquiera", moneda:"Cualquiera", que:"Capital reinvertido en tu negocio.", ej:"Inventario, equipos, marketing", liq:"Baja", hor:"Sin límite definido", vol:"Muy alta", ojo:"Máximo 5-10% del portafolio total." }
+  ]
+};
+function paisesDeCatalogo(clave){
+  const set = [];
+  (CATALOGO_VEHICULOS[clave] || []).forEach(v => v.pais.split(/\s*[\/,]\s*/).forEach(p => { p = p.trim(); if(p && !set.includes(p)) set.push(p); }));
+  return set;
+}
+function catalogoHTML(f){
+  const lista = CATALOGO_VEHICULOS[f.clave] || [];
+  if(!lista.length) return "";
+  const filtro = sesionV.filtroPais || "Todos";
+  const paises = ["Todos"].concat(paisesDeCatalogo(f.clave));
+  const visibles = lista.map((v, i) => ({ v, i })).filter(x => filtro === "Todos" || x.v.pais.toLowerCase().includes(filtro.toLowerCase()));
+  return `<h3>Elige un vehículo para ${f.nombre.toLowerCase()}</h3>
+    <p style="font-size:13px; color:var(--texto-suave); margin:0 0 8px;">Cada uno funciona distinto. Compara su liquidez, su volatilidad y su horizonte, y elige el que encaje con lo que necesitas de esta parte.</p>
+    <div class="filtros">${paises.map(p => `<button type="button" class="filtro ${p === filtro ? "sel" : ""}" onclick="filtrarPais('${esc(p).replace(/'/g, "")}')">${esc(p)}</button>`).join("")}</div>
+    ${visibles.map(x => `
+      <div class="cat-card">
+        <div class="cat-top"><div class="cat-n">${esc(x.v.n)}</div><div class="cat-pais">${esc(x.v.pais)} · ${esc(x.v.moneda)}</div></div>
+        <div class="cat-que">${esc(x.v.que)}</div>
+        <div class="cat-perfil"><span class="pf">⏱️ Liquidez: ${esc(x.v.liq)}</span><span class="pf">📅 ${esc(x.v.hor)}</span><span class="pf">📈 Volatilidad: ${esc(x.v.vol)}</span></div>
+        <div class="cat-ej">Ejemplos: ${esc(x.v.ej)}</div>
+        <div class="cat-ojo">👀 ${esc(x.v.ojo)}</div>
+        <button type="button" class="btn-mini" onclick="elegirDelCatalogo('${f.clave}', ${x.i})">Elegir este vehículo</button>
+      </div>`).join("")}`;
+}
+function filtrarPais(p){ sesionV.filtroPais = p; pantallaMenu(); }
+function elegirDelCatalogo(clave, i){
+  sesionV.catalogoElegido = (CATALOGO_VEHICULOS[clave] || [])[i] || null;
+  pantallaVehiculo();
+}
 
 /* Los 4 criterios (Sesión 2): lo que necesita cada parte del jardín */
 const CRITERIOS_PARTE = {
@@ -2521,7 +2635,7 @@ function listaVehiculosHTML(lista){
   return `<h3>Tus vehículos elegidos</h3>` + lista.map(x => `
     <div class="resumen-row"><span class="k">${esc(x.parteJardin||"")}</span><span class="v">${esc(x.vehiculoElegido||"")} · ${cop(x.monto_vehiculo_cop)}</span></div>`).join("");
 }
-function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; vehiculoEditando = null; sesionV.desdePanel = true; pantallaBrecha(); }
+function elegirOtroVehiculo(){ sesionV.brecha = null; sesionV.vehiculo = null; vehiculoEditando = null; sesionV.desdePanel = true; sesionV.catalogoElegido = null; pantallaBrecha(); }
 
 /* ============================================================
    PANTALLA 1 — BÚSQUEDA POR CORREO
@@ -2625,6 +2739,7 @@ function elegirBrecha(clave){
 }
 function irAMenu(){
   if(!sesionV.brecha){ toast("Elige una parte del jardín primero 💛"); return; }
+  sesionV.filtroPais = "Todos"; sesionV.catalogoElegido = null;
   if(!sesionV.monoOk && holdingsDe(panelDatos.balance).length){ pantallaMono(); return; }
   pantallaMenu();
 }
@@ -2649,10 +2764,9 @@ function pantallaMenu(){
         <p style="margin:0; font-size:13.5px;">${esc(f.colombia)}</p>
         <div class="revisar"><b>Qué revisar antes de elegir:</b> ${esc(f.revisar)}</div>
       </div>
-      <h3>Ejemplos por país y moneda</h3>
-      ${ejemplos}
+      ${catalogoHTML(f)}
       <div class="microcopy">El nombre del vehículo importa menos que el rango que ya decidiste en la sesión 1 — el vehículo solo llena ese rango. Esta es la categoría, no una recomendación puntual: confirma tasas, comisiones y condiciones vigentes antes de decidir.</div>
-      <button class="btn" onclick="pantallaVehiculo()">Elegir mi vehículo</button>
+      <button class="btn secundario" onclick="sesionV.catalogoElegido=null; pantallaVehiculo()">Mi vehículo no está en la lista</button>
       <button class="link-volver" onclick="pantallaBrecha()">Cambiar parte del jardín</button>
     </div>
   `;
@@ -2664,14 +2778,16 @@ function pantallaMenu(){
 function pantallaVehiculo(){
   const f = filaMenu(sesionV.brecha);
   const ve = vehiculoEditando || {};
+  const cat = (!vehiculoEditando && sesionV.catalogoElegido) ? sesionV.catalogoElegido : null;
   document.getElementById("app").innerHTML = `
     ${headerS2()}
     ${progreso(3,4,"Paso 3 de 4 · Tu vehículo")}
     <div class="card">
       <h2>${vehiculoEditando ? "Editar tu vehículo" : "Tu vehículo"} para ${f.nombre.toLowerCase()}</h2>
       <p class="lead">Elige un vehículo concreto (después podrás agregar otro) — el que mejor se ajuste a lo que ya usas o puedas abrir esta semana.</p>
-      <label>Vehículo elegido</label>
-      <input type="text" id="in-vehiculo" value="${esc(ve.vehiculoElegido||"")}" placeholder="Ej: CDT a 180 días en Davivienda, ETF VOO, cuenta Nu...">
+      ${cat ? `<div class="cat-elegido"><b>${esc(cat.n)}</b> · ${esc(cat.pais)} · ${esc(cat.moneda)}<div>${esc(cat.que)}</div><div class="cat-ej">⏱️ Liquidez: ${esc(cat.liq)} · 📈 Volatilidad: ${esc(cat.vol)}</div></div>` : ""}
+      <label>${cat ? "Escribe cuál en concreto (banco, fondo o ticker)" : "Vehículo elegido"}</label>
+      <input type="text" id="in-vehiculo" value="${esc(ve.vehiculoElegido || (cat ? cat.n : ""))}" placeholder="Ej: CDT a 180 días en Davivienda, ETF VOO, cuenta Nu...">
       <label>¿Cuánto vas a destinar? (COP)</label>
       <input type="number" id="in-monto" min="0" step="1" value="${Number(ve.monto_vehiculo_cop)||""}" placeholder="Ej: 500000">
       <label>¿Cuándo lo vas a abrir o aportar?</label>
@@ -2739,7 +2855,8 @@ function guardarVehiculo(){
     porQueCumple: porQue,
     primerPaso: primerPaso,
     monoCultivo: sesionV.mono || (ed && ed.monoCultivo) || "",
-    quiereAprender: quiereAprender
+    quiereAprender: quiereAprender,
+    tipoVehiculo: (sesionV.catalogoElegido && sesionV.catalogoElegido.n) || (ed && ed.tipoVehiculo) || ""
   };
   if(ed) registro.idAnterior = ed.id;
   enviarABaseDeDatos(registro);
@@ -2754,6 +2871,7 @@ function guardarVehiculo(){
     return;
   }
   lista.push(registro);
+  sesionV.catalogoElegido = null;
   pantallaConfirmacionS2();
 }
 
@@ -2807,6 +2925,28 @@ function pantallaConfirmacionS2(){
    ============================================================ */
 let emailOrquestador = "";
 
+/* ---- Edición desde el panel ----
+   Cuando se entra a actualizar el Balance o a crear/editar el Rango Objetivo desde el panel, cada pantalla de esos flujos
+   ofrece "Volver a mi panel", y al volver el panel se refresca con lo que se acaba de guardar (sin consultar el Sheet). */
+let desdePanelEdicion = false;
+let ultimoSnapshotGuardado = null;   // balance guardado durante esta edición (si lo hubo)
+function botonVolverPanel(estilo){
+  if(!desdePanelEdicion) return "";
+  return estilo === "principal"
+    ? `<button class="btn secundario" onclick="volverAlPanel()">← Volver a mi panel</button>`
+    : `<button class="link-volver" onclick="volverAlPanel()">← Volver a mi panel</button>`;
+}
+function volverAlPanel(){
+  const st = getState();
+  if(ultimoSnapshotGuardado && st && st.perfilRiesgo && st.metas){
+    const coherencia = evaluarCoherencia(st.perfilRiesgo, st.metas, ultimoSnapshotGuardado.activos, ultimoSnapshotGuardado.totales.totalActivos);
+    panelDatos.balance = construirPayloadPlano(st, ultimoSnapshotGuardado, coherencia);
+  }
+  ultimoSnapshotGuardado = null;
+  desdePanelEdicion = false;
+  pantallaPanel();
+}
+
 function headerOrquestador(sub){
   return `<div class="brand"><img src="data:image/png;base64,${ICON_B64}" alt="Feminario"></div>
   <div class="eyebrow">Tu Portafolio, Tu Estrategia</div>
@@ -2815,6 +2955,7 @@ function headerOrquestador(sub){
 
 function pantallaInicioUnificado(mensajeError){
   panelDatos = panelVacio(); vehiculoEditando = null; sesion.editando = false; sesionV.monoOk = false; sesionV.mono = "";
+  desdePanelEdicion = false; ultimoSnapshotGuardado = null;
   document.getElementById("app").innerHTML = `
     ${headerOrquestador("Bienvenida")}
     <div class="card">
@@ -2902,7 +3043,7 @@ function plazoMeta(horizonte, desde){
 
 function pantallaPanel(){
   const b = panelDatos.balance, r = panelDatos.rango_s1, vs = panelDatos.vehiculos_s2 || [];
-  sesion.editando = false; vehiculoEditando = null; sesionV.desdePanel = false;
+  sesion.editando = false; vehiculoEditando = null; sesionV.desdePanel = false; desdePanelEdicion = false;
   sesionV.email = emailOrquestador || sesionV.email;
   const nombreCompleto = (r && r.nombre) || (b && b.nombre) || (vs[0] && vs[0].nombre) || sesionV.nombre || "";
   sesionV.nombre = nombreCompleto;
@@ -3028,8 +3169,9 @@ function pantallaPanel(){
     </div>
   `;
 }
-function actualizarBalance(){ pantallaBienvenidaConEmail(emailOrquestador); }
+function actualizarBalance(){ desdePanelEdicion = true; ultimoSnapshotGuardado = null; pantallaBienvenidaConEmail(emailOrquestador); }
 function continuarARangoDesdePanel(){
+  desdePanelEdicion = true;
   const persona = normalizarPersona(panelDatos.balance);
   sesion.persona = persona;
   sesion.horizonte = bucketHorizonte(persona.metaHorizonte);
