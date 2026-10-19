@@ -583,6 +583,31 @@
   .info-rapida{ font-size:13px; color:var(--texto); margin:0 0 14px; display:grid; gap:6px; }
   .info-rapida > div{ padding:8px 12px; border-radius:12px; background:rgba(255,255,255,0.7); border:1px solid rgba(126,132,174,0.18); }
   .paso-card, .paso-texto, .paso-fecha, .paso-titulo{ text-align:left; }
+  /* ---- Meta grande, hito, círculos de vehículos ---- */
+  .meta-card{ padding:24px 22px; border-radius:24px; margin-bottom:0; }
+  .meta-t{ font-size:30px; line-height:1.15; margin:8px 0 6px; }
+  .meta-et{ font-size:12.5px; }
+  .meta-s{ font-size:13.5px; }
+  .hito{ position:relative; padding-left:26px; margin:0 0 16px; }
+  .hito-linea{ position:absolute; left:19px; top:-1px; bottom:50%; width:3px; background:linear-gradient(#9AA0C7,#CEA2DD); border-radius:2px; }
+  .hito-card{ display:flex; gap:12px; align-items:center; background:rgba(206,162,221,0.28); border-radius:18px; padding:14px 16px; margin-top:0; position:relative; }
+  .hito-card:before{ content:""; position:absolute; left:-12px; top:50%; width:12px; height:3px; background:#CEA2DD; }
+  .hito-ico{ font-size:26px; flex-shrink:0; }
+  .hito-et{ font-size:11.5px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--morado); }
+  .hito-t{ font-size:16px; font-weight:800; color:var(--morado-oscuro); margin:2px 0; overflow-wrap:anywhere; }
+  .hito-f{ font-size:12.5px; color:var(--texto-suave); }
+  .kpi-grid{ margin-top:14px; }
+  .kpi-top{ font-weight:700; margin:0 0 4px; }
+  .kpi-v{ font-size:19px; overflow-wrap:anywhere; }
+  .veh-ilus{ width:220px; max-width:80%; aspect-ratio:948 / 820; overflow:hidden; border-radius:20px; margin:14px auto 12px; background:#C2CBFF; }
+  .veh-ilus img{ width:112%; max-width:none; margin-left:-9%; display:block; }
+  .circulos{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+  .circ{ width:84px; height:84px; border-radius:50%; background:#fff; border:3px solid #C2CBFF; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:4px; position:relative; flex-shrink:0; }
+  .circ-v{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:16px; color:var(--morado-oscuro); line-height:1.1; }
+  .circ-k{ font-size:10px; color:var(--texto-suave); line-height:1.15; margin-top:2px; }
+  .circ-anillo{ border:none; padding:0; background:transparent; }
+  .circ-anillo .donut{ position:absolute; inset:0; }
+  .circ-centro{ position:relative; display:flex; flex-direction:column; align-items:center; }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2152,8 +2177,21 @@ function patrimonioHTML(b){
     <h3>Así está distribuido mi patrimonio hoy</h3>
     <div class="donut-uno">${donutSVG(items.map(x => ({ v:x.v, color:x.c })), ["Total activos", copCorto(total)])}</div>
     ${items.map(x => `<div class="leyenda-fila"><i class="dot" style="background:${x.c}"></i><span class="ln">${x.n}</span><span class="lv">${cop(x.v)}</span><span class="lp">${Math.round(x.v / total * 100)}%</span></div>`).join("")}
-    ${(b.totalPasivos_cop !== undefined && b.totalPasivos_cop !== "") ? `<div class="detalle-v" style="margin-top:8px;">Lo que debo: ${cop(b.totalPasivos_cop)} · Patrimonio neto: ${cop(b.patrimonioNeto_cop)}</div>` : ""}
   </div>`;
+}
+function vehiculosCirculos(vs, proximo){
+  if(!vs.length) return "";
+  const total = vs.reduce((t, v) => t + n0(v.monto_vehiculo_cop), 0);
+  const criterios = vs.map(v => Math.min(4, (v.criterios || "").split(";").filter(x => x.trim()).length));
+  const prom = criterios.reduce((a, c) => a + c, 0) / vs.length;
+  const dias = proximo ? diasHasta(proximo.d) : null;
+  return `<div class="veh-ilus"><img src="assets/camioneta.png" alt=""></div>
+    <div class="circulos">
+      <div class="circ"><div class="circ-v">${vs.length}</div><div class="circ-k">${vs.length === 1 ? "vehículo" : "vehículos"}</div></div>
+      <div class="circ"><div class="circ-v">${esc(copCorto(total))}</div><div class="circ-k">destinado</div></div>
+      ${dias !== null ? `<div class="circ"><div class="circ-v">${dias === 0 ? "hoy" : dias}</div><div class="circ-k">${dias === 0 ? "aporte" : (dias === 1 ? "día al aporte" : "días al aporte")}</div></div>` : ""}
+      <div class="circ circ-anillo">${donutSVG([{ v:prom, color:"#7E84AE" }, { v:Math.max(4 - prom, 0), color:"rgba(126,132,174,0.18)" }])}<div class="circ-centro"><div class="circ-v">${prom.toFixed(1).replace(".0", "")}/4</div><div class="circ-k">criterios</div></div></div>
+    </div>`;
 }
 function radiografiaDonutsHTML(b, r, vs){
   const filas = filasRadiografia(b, r, vs);
@@ -2778,7 +2816,7 @@ function pantallaPanel(){
   const resta = plazoMeta(horiz, (b && b.fecha) || (r && r.fecha));
   const palabras = (b && b.metaPalabras) || (r && r.metaPalabras) || "";
   const cardMeta = meta ? `<div class="meta-card">
-      <div class="meta-et">Mi meta grande</div>
+      <div class="meta-et">🎯 Mi meta grande</div>
       <div class="meta-t">${esc(meta)}</div>
       ${palabras ? `<div class="meta-p">“${esc(palabras)}”</div>` : ""}
       ${(horiz || resta) ? `<div class="meta-s">${horiz ? "Plazo: " + esc(horiz.toLowerCase()) : ""}${resta ? " · quedan hasta " + resta : ""}</div>` : ""}
@@ -2791,12 +2829,24 @@ function pantallaPanel(){
   /* Primer paso */
   const conPaso = vs.filter(v => v.primerPaso);
   const pasoV = (proximo && proximo.v.primerPaso) ? proximo : (conPaso[0] ? { v: conPaso[0], d: fechaDeVehiculo(conPaso[0]) } : null);
-  const cardPaso = pasoV ? `
-    <div class="paso-card">
-      <div class="paso-titulo">👣 Lo que haré esta semana</div>
-      <div class="paso-texto">${esc(pasoV.v.primerPaso)}</div>
-      ${pasoV.d ? `<div class="paso-fecha">📅 ${esc(fechaEnTexto(pasoV.d))} · ${textoDias(diasHasta(pasoV.d))}</div>` : (pasoV.v.cuandoAportar ? `<div class="paso-fecha">📅 ${esc(pasoV.v.cuandoAportar)}</div>` : "")}
+  const cardHito = pasoV ? `
+    <div class="hito">
+      <div class="hito-linea"></div>
+      <div class="hito-card">
+        <div class="hito-ico">🚩</div>
+        <div>
+          <div class="hito-et">Mi hito de esta semana</div>
+          <div class="hito-t">${esc(pasoV.v.primerPaso)}</div>
+          ${pasoV.d ? `<div class="hito-f">📅 ${esc(fechaEnTexto(pasoV.d))} · ${textoDias(diasHasta(pasoV.d))}</div>` : (pasoV.v.cuandoAportar ? `<div class="hito-f">📅 ${esc(pasoV.v.cuandoAportar)}</div>` : "")}
+        </div>
+      </div>
     </div>` : "";
+  const kpiLista = [];
+  if(b && b.patrimonioNeto_cop !== undefined && b.patrimonioNeto_cop !== "") kpiLista.push([cop(b.patrimonioNeto_cop), "Patrimonio neto", "Lo que tengo menos lo que debo"]);
+  if(b && b.totalPasivos_cop !== undefined && b.totalPasivos_cop !== "") kpiLista.push([cop(b.totalPasivos_cop), "Lo que debo", "Suma de mis deudas"]);
+  if(b && b.mesesColchon !== undefined && b.mesesColchon !== "") kpiLista.push([Number(b.mesesColchon).toFixed(1).replace(".0", "") + " meses", "Colchón de emergencia", "De mis gastos cubiertos"]);
+  kpiLista.push([textoDias(diasHasta(FECHA_SESION3)), "Próxima sesión", "29 de octubre"]);
+  const kpiHTML = `<div class="kpi-grid">${kpiLista.map(k => `<div class="kpi"><div class="kpi-k kpi-top">${esc(k[1])}</div><div class="kpi-v">${esc(k[0])}</div><div class="kpi-k">${esc(k[2])}</div></div>`).join("")}</div>`;
 
   /* Radiografía y patrimonio en gráficos circulares */
   const cardRadiografia = (b && r && mezclaReal(b)) ? `
@@ -2836,6 +2886,7 @@ function pantallaPanel(){
           </div>
         </div>`; }).join("")}
       <div class="panel-acciones"><button class="btn-mini" onclick="elegirOtroVehiculo()">+ Agregar otro vehículo</button></div>
+      ${vehiculosCirculos(vs, proximo)}
     </div>` : "";
 
   const botonEntregable = todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver y descargar mi hoja de estrategia (PDF)</button>` : "";
@@ -2857,10 +2908,10 @@ function pantallaPanel(){
       <p class="lead">Hola${nombre ? ", " + esc(nombre) : ""} 👋 Así va tu Estrategia de Inversión.</p>
       ${avance}
       ${cardMeta}
+      ${cardHito}
+      ${kpiHTML}
       ${cardPatrimonio}
       ${cardRadiografia}
-      ${infoRapida}
-      ${cardPaso}
       ${cardVehiculos}
       ${cardRango}${cardBalance}
       ${botonEntregable}
