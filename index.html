@@ -2221,6 +2221,7 @@ let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:nu
 /* Lo que sabemos de la persona (viene del Sheet o se va llenando en esta sesión) */
 let panelDatos = { balance:null, rango_s1:null, vehiculos_s2:[] };
 let vehiculoEditando = null;
+function todoCompleto(){ return !!(panelDatos.balance && panelDatos.rango_s1 && (panelDatos.vehiculos_s2||[]).length); }
 function panelVacio(){ return { balance:null, rango_s1:null, vehiculos_s2:[] }; }
 function nuevoId(){ return "v" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function fmtFecha(f){ const d = new Date(f); return (!f || isNaN(d)) ? "" : d.toLocaleDateString("es-CO", { day:"numeric", month:"long" }); }
@@ -2497,7 +2498,7 @@ function pantallaConfirmacionS2(){
       ${listaVehiculosHTML(panelDatos.vehiculos_s2)}
       <div class="microcopy">Hoy pasaste del plano al vehículo real. El 29 de octubre conocen los arquetipos de estrategia de inversión — desde quien sigue solo índices hasta quien arma su propia tesis — y eligen cuál les hace sentido.</div>
       <button class="btn" onclick="elegirOtroVehiculo()">Elegir otro vehículo (otra parte del jardín u otro en la misma)</button>
-      <button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>
+      ${todoCompleto() ? `<button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>` : ""}
       <button class="btn secundario" onclick="pantallaPanel()">Ver mi panel</button>
       <button class="btn secundario" onclick="sesionV={email:null,nombre:null,rango_s1:null,brecha:null,vehiculo:null}; emailOrquestador=''; pantallaInicioUnificado();">Hacer el ejercicio de otra persona</button>
       <div class="footer-nota">Explorar más recursos de Feminario: <a href="${LINK_EXPLORAR}" target="_blank" rel="noopener" style="color:var(--morado);">${LINK_EXPLORAR}</a></div>
@@ -2614,7 +2615,7 @@ function pantallaPanel(){
       <h3>Mi radiografía: hoy vs. mi yo ideal</h3>
       ${radiografiaHTML(b, r)}
     </div>` : "";
-  const botonEntregable = r ? `<button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>` : "";
+  const botonEntregable = todoCompleto() ? `<button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>` : "";
   let siguiente = "";
   if(b && !r){
     siguiente = `<div class="paso-sig">Siguiente paso: tu Rango Objetivo.</div>
