@@ -50,6 +50,11 @@
   .puntaje{ font-size:44px; font-weight:800; text-align:center; color:var(--morado-oscuro); margin:6px 0; font-family:'MuseoModerno',sans-serif; }
   .fila{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(126,132,174,.2); font-size:14px; }
   a{ color:var(--morado); font-weight:700; }
+  .perfil{ border-radius:20px; padding:20px 18px; text-align:center; margin-bottom:12px; border:2px solid rgba(126,132,174,.25); }
+  .perfil-emoji{ font-size:46px; line-height:1; }
+  .perfil-etiqueta{ font-size:11.5px; font-weight:700; letter-spacing:1.1px; text-transform:uppercase; color:var(--morado); margin-top:8px; }
+  .perfil-nombre{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:24px; color:var(--morado-oscuro); margin:4px 0 6px; line-height:1.15; }
+  .perfil-frase{ margin:0; font-size:14px; color:var(--texto); }
 </style>
 </head>
 <body>
@@ -225,15 +230,33 @@ function respConcepto(k){
     <button class="btn" onclick="siguiente()">${estado.ronda === 2 && estado.i === TOTALES[2] - 1 ? "Ver mi resultado" : "Siguiente"}</button>`;
 }
 
-/* ---- Final ---- */
+/* ---- Final: puntaje + perfil de inversionista ---- */
+const NIVELES = [
+  { min:0.85, emoji:"🌳", nombre:"Inversionista experta", frase:"Tu tronco está firme: dominas los conceptos y los criterios para elegir un vehículo.", color:"#DFF3AF" },
+  { min:0.65, emoji:"🌿", nombre:"Inversionista en crecimiento", frase:"Ya tienes buenas bases. Con un poco más de práctica, vas a elegir vehículos con total confianza.", color:"#C2CBFF" },
+  { min:0.40, emoji:"🌱", nombre:"Inversionista aprendiendo", frase:"Vas por buen camino: ya reconoces varias ideas clave. Repasa las que fallaste y sigue sembrando.", color:"#F9E1FF" },
+  { min:0,    emoji:"🌰", nombre:"Inversionista semilla", frase:"Estás empezando, y eso ya es un paso grande. Cada respuesta con su explicación es una raíz nueva.", color:"#FFEAD2" }
+];
 function final(){
   const ac = estado.aciertos.reduce((a, b) => a + b, 0), tot = TOTALES.reduce((a, b) => a + b, 0);
+  const pct = ac / tot;
+  const nivel = NIVELES.find(n => pct >= n.min);
+  const porRonda = estado.aciertos.map((x, k) => ({ k, p: x / TOTALES[k] }));
+  const fuerte = porRonda.slice().sort((a, b) => b.p - a.p)[0];
+  const repasar = porRonda.slice().sort((a, b) => a.p - b.p)[0];
   app.innerHTML = head("¡Listo!") + `<div class="card">
+    <div class="perfil" style="background:${nivel.color}">
+      <div class="perfil-emoji">${nivel.emoji}</div>
+      <div class="perfil-etiqueta">Tu perfil de inversionista</div>
+      <div class="perfil-nombre">${nivel.nombre}</div>
+      <p class="perfil-frase">${nivel.frase}</p>
+    </div>
     <div class="puntaje">${ac} / ${tot}</div>
-    <p class="lead" style="text-align:center">No se trata de acertar todo: lo importante es que ya sabes qué criterios mirar antes de elegir.</p>
+    <div class="nota" style="margin:0 0 10px">${Math.round(pct * 100)}% de respuestas correctas</div>
     ${NOMBRES.map((n, k) => `<div class="fila"><span>${n}</span><b>${estado.aciertos[k]} / ${TOTALES[k]}</b></div>`).join("")}
-    <a class="btn" href="../" style="text-decoration:none; text-align:center">Continuar con mi ejercicio</a>
-    <button class="btn sec" onclick="inicio()">Volver a jugar</button>
+    <div class="resp" style="margin-top:14px"><b class="t">Lo que sacaste</b>
+      Tu ronda más fuerte: <b>${NOMBRES[fuerte.k]}</b>.${repasar.p < 1 && repasar.k !== fuerte.k ? ` Para repasar: <b>${NOMBRES[repasar.k]}</b>.` : ""}</div>
+    <button class="btn" onclick="inicio()">Volver a jugar</button>
     <div class="nota">Las 4 ideas para llevarte: liquidez, horizonte, volatilidad y moneda.</div>
   </div>`;
 }
