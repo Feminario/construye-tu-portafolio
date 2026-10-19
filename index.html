@@ -2966,6 +2966,7 @@ function pantallaPanel(){
   const cardVehiculos = vs.length ? `
     <div class="vehiculo-card">
       <h3>Mis vehículos ✓</h3>
+      ${vehiculosCirculos(vs, proximo)}
       ${vs.map(v => {
         const d = fechaDeVehiculo(v);
         const cumple = (v.criterios || "").split(";").filter(x => x.trim()).length;
@@ -2983,7 +2984,6 @@ function pantallaPanel(){
           </div>
         </div>`; }).join("")}
       <div class="panel-acciones"><button class="btn-mini" onclick="elegirOtroVehiculo()">+ Agregar otro vehículo</button></div>
-      ${vehiculosCirculos(vs, proximo)}
     </div>` : "";
 
   const botonEntregable = todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver y descargar mi hoja de estrategia (PDF)</button>` : "";
