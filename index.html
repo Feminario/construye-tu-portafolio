@@ -536,6 +536,7 @@
     .doc-page:last-child{ page-break-after:auto; break-after:auto; }
     *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
+  .paso-sig{ margin:26px 0 6px; font-size:16px; font-weight:800; color:var(--morado); text-align:center; background:none; }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2616,10 +2617,10 @@ function pantallaPanel(){
   const botonEntregable = r ? `<button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>` : "";
   let siguiente = "";
   if(b && !r){
-    siguiente = `<div class="microcopy">Siguiente paso: tu Rango Objetivo.</div>
+    siguiente = `<div class="paso-sig">Siguiente paso: tu Rango Objetivo.</div>
       <button class="btn" onclick="continuarARangoDesdePanel()">Continuar a mi Rango Objetivo &rarr;</button>`;
   } else if(r && !vs.length){
-    siguiente = `<div class="microcopy">Siguiente paso: elegir tu vehículo.</div>
+    siguiente = `<div class="paso-sig">Siguiente paso: elegir tu vehículo.</div>
       <button class="btn" onclick="elegirOtroVehiculo()">Continuar a elegir mi vehículo &rarr;</button>`;
   } else if(!b && !r && !vs.length){
     siguiente = `<button class="btn" onclick="pantallaBienvenidaConEmail(emailOrquestador)">Empezar con mi Balance de Portafolio</button>`;
