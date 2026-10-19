@@ -480,6 +480,62 @@
 
   /* Tipografía de títulos de la marca (Museo Moderno, sustituta de Museo 700) */
   h1, h2, h3, .titulo-tool{ font-family:'MuseoModerno','Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-weight:700; }
+  /* ---- Sesión 2: radiografía, criterios, mono-cultivo ---- */
+  .sug{ margin-top:4px; font-size:12px; font-weight:700; color:var(--morado-oscuro); }
+  .detalle-v{ font-size:12.5px; color:var(--texto-suave); margin:2px 0 0; }
+  .crit-box{ background:rgba(194,203,255,0.3); border-radius:18px; padding:14px 16px; margin:10px 0 14px; }
+  .crit-titulo{ font-weight:800; color:var(--morado-oscuro); margin-bottom:8px; font-size:14px; }
+  .crit-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .crit{ background:rgba(255,255,255,0.75); border-radius:12px; padding:10px; font-size:12.5px; display:flex; flex-direction:column; gap:2px; }
+  .crit .ico{ font-size:18px; }
+  .crit-nota{ font-size:12px; font-style:italic; color:var(--morado-oscuro); margin-top:8px; }
+  .crit-checks{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 12px; }
+  .chip{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; border:1.5px solid var(--periwinkle); background:rgba(255,255,255,0.75); font-size:13px; font-weight:600; margin:0; cursor:pointer; }
+  .chip input{ width:auto; margin:0; accent-color:var(--morado); }
+  .rad-leyenda{ display:flex; gap:16px; font-size:12px; margin:4px 0 8px; color:var(--texto-suave); }
+  .rad-leyenda .sw{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:4px; vertical-align:-2px; }
+  .rad-leyenda .sw.hoy{ background:var(--morado); } .rad-leyenda .sw.obj{ background:var(--lavanda); border:2px solid var(--morado-oscuro); }
+  .rad-row{ margin:10px 0 14px; }
+  .rad-top{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px; gap:8px; }
+  .rad-top span{ color:var(--texto-suave); font-size:12px; }
+  .rad-bar{ position:relative; height:14px; background:rgba(126,132,174,0.18); border-radius:999px; overflow:visible; }
+  .rad-hoy{ height:100%; background:var(--morado); border-radius:999px; }
+  .rad-obj{ position:absolute; top:-4px; width:3px; height:22px; background:var(--morado-oscuro); border-radius:2px; }
+  .rad-gap{ font-size:12px; font-weight:700; margin-top:4px; }
+  .rad-gap.falta{ color:var(--alerta); } .rad-gap.sobra{ color:#B7791F; } .rad-gap.ok{ color:var(--bien); }
+  .mono-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(126,132,174,0.2); }
+  .mono-tipo{ font-size:11.5px; color:var(--texto-suave); } .mono-ix{ font-size:12px; color:var(--morado-oscuro); }
+  .mono-chk{ display:flex; align-items:center; gap:6px; font-size:12.5px; margin:0; font-weight:600; }
+  .mono-chk input{ width:auto; margin:0; }
+  /* ---- Entregable (PDF de 2 páginas) ---- */
+  .acciones-doc{ margin:0 0 16px; text-align:center; }
+  .acciones-doc small{ display:block; margin-top:6px; color:var(--texto-suave); font-size:12px; }
+  .doc{ max-width:820px; margin:0 auto; }
+  .doc-page{ background:#fff; border-radius:18px; padding:26px; margin-bottom:18px; box-shadow:0 6px 24px rgba(126,132,174,0.2); }
+  .doc-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:3px solid var(--periwinkle); padding-bottom:12px; margin-bottom:16px; }
+  .doc-head img.logo{ height:40px; width:auto; }
+  .doc-titulo{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:22px; color:var(--morado-oscuro); margin:0; line-height:1.15; }
+  .doc-sub{ font-size:12px; color:var(--texto-suave); margin-top:2px; }
+  .doc-quien{ text-align:right; font-size:12.5px; color:var(--morado-oscuro); font-weight:700; }
+  .doc h4{ font-family:'MuseoModerno','Montserrat',sans-serif; color:var(--morado); font-size:15px; margin:16px 0 6px; }
+  .doc-meta{ background:rgba(223,243,175,0.5); border-radius:14px; padding:12px 14px; font-size:14px; margin:6px 0 10px; }
+  .doc-meta .frase{ font-style:italic; color:var(--morado-oscuro); margin-top:4px; }
+  .doc table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .doc th{ background:var(--periwinkle); color:var(--morado-oscuro); text-align:left; padding:8px; font-size:12px; }
+  .doc td{ border-bottom:1px solid #e5e3f2; padding:8px; vertical-align:top; }
+  .doc-ilus{ width:110px; height:84px; overflow:hidden; border-radius:14px; flex-shrink:0; background:#C2CBFF; }
+  .doc-ilus img{ width:160%; max-width:none; margin-left:-48%; margin-top:-6%; display:block; }
+  .doc-ilus.agua img{ width:100%; margin:0; }
+  .doc-pie{ font-size:11px; color:var(--texto-suave); margin-top:14px; border-top:1px solid #e5e3f2; padding-top:8px; }
+  @media print{
+    @page{ size:A4; margin:12mm; }
+    html,body{ background:#fff !important; }
+    #blobs, .no-print, .toast{ display:none !important; }
+    #app{ max-width:none !important; padding:0 !important; }
+    .doc-page{ box-shadow:none; border-radius:0; padding:0; margin:0; page-break-after:always; break-after:page; }
+    .doc-page:last-child{ page-break-after:auto; break-after:auto; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -1909,6 +1965,224 @@ const MENU_VEHICULOS = [
 function filaMenu(clave){ return MENU_VEHICULOS.find(f => f.clave === clave); }
 
 /* ============================================================
+   MÁS OPCIONES POR PAÍS (categorías, no recomendaciones; confirmar condiciones vigentes)
+   ============================================================ */
+const EXTRA_EJEMPLOS = {
+  raices:[
+    {pais:"Perú (PEN)", texto:"Depósitos a plazo y fondos mutuos de renta fija en bancos y administradoras locales; bonos soberanos."},
+    {pais:"Brasil (BRL)", texto:"Tesouro Direto (Tesouro Selic o IPCA+), CDB y LCI/LCA."},
+    {pais:"Argentina (ARS/USD)", texto:"Plazo fijo, fondos comunes de inversión de renta fija y bonos; ojo con el riesgo país y la inflación."},
+    {pais:"España / Europa (EUR)", texto:"Letras del Tesoro, depósitos a plazo y fondos monetarios o de bonos."},
+    {pais:"Canadá (CAD)", texto:"GICs (certificados de inversión garantizados) y ETFs de bonos."}
+  ],
+  tronco:[
+    {pais:"Global (USD)", texto:"VT: todo el mercado mundial en un solo fondo."},
+    {pais:"Brasil (BRL)", texto:"BOVA11 (sigue el Ibovespa) o IVVB11 (S&P 500 en reales)."},
+    {pais:"Argentina (ARS)", texto:"CEDEARs: certificados que representan ETFs o acciones del exterior, como los que siguen al S&P 500."},
+    {pais:"Perú (PEN/USD)", texto:"ETFs globales (VT, VTI) vía bróker internacional, o local con acceso al exterior."},
+    {pais:"España / Europa (EUR)", texto:"ETFs o fondos indexados que replican el S&P 500 o el MSCI World, en euros."},
+    {pais:"Canadá (CAD)", texto:"ETFs all-in-one de acciones globales como VEQT o XEQT."}
+  ],
+  agua:[
+    {pais:"México (MXN)", texto:"Cuentas de ahorro remuneradas y fondos de deuda de corto plazo."},
+    {pais:"Perú (PEN)", texto:"Cuentas de ahorro en bancos, cajas o bancos digitales; fondos mutuos de muy corto plazo."},
+    {pais:"Brasil (BRL)", texto:"Cuentas remuneradas y CDB con liquidez diaria."},
+    {pais:"Argentina (ARS)", texto:"Fondos comunes de inversión tipo money market y billeteras virtuales remuneradas."},
+    {pais:"Canadá (CAD)", texto:"Cuentas de ahorro de alto interés (HISA)."}
+  ]
+};
+Object.keys(EXTRA_EJEMPLOS).forEach(k => { const f = filaMenu(k); if(f) f.ejemplos = f.ejemplos.concat(EXTRA_EJEMPLOS[k]); });
+
+/* Los 4 criterios (Sesión 2): lo que necesita cada parte del jardín */
+const CRITERIOS_PARTE = {
+  agua:   { liq:"Inmediata a 1-2 días", hor:"Ninguno: se puede necesitar ya", vol:"Muy baja" },
+  raices: { liq:"Baja (puede esperar el plazo)", hor:"Meses a pocos años", vol:"Baja" },
+  tronco: { liq:"Baja", hor:"Varios años", vol:"Media" },
+  ramas:  { liq:"Baja", hor:"Varios años, con margen para caídas", vol:"Alta" },
+  injerto:{ liq:"Baja, pero solo con plata que puedes perder", hor:"Sin límite definido, tope de 5-10%", vol:"Muy alta" }
+};
+const CRITERIOS_LISTA = [ {k:"liquidez", t:"Liquidez"}, {k:"horizonte", t:"Horizonte"}, {k:"volatilidad", t:"Volatilidad"}, {k:"moneda", t:"Moneda"} ];
+const APRENDER_OPCIONES = ["Qué es cada vehículo y cómo funciona", "Cómo abrirlo paso a paso", "Costos y comisiones", "Impuestos", "Cómo evitar estafas", "Cuánto necesito para empezar"];
+function criteriosHTML(f){
+  const c = CRITERIOS_PARTE[f.clave]; if(!c) return "";
+  return `<div class="crit-box"><div class="crit-titulo">Los 4 criterios para ${f.nombre.toLowerCase()}</div>
+    <div class="crit-grid">
+      <div class="crit"><span class="ico">⏱️</span><b>Liquidez</b><span>${c.liq}</span></div>
+      <div class="crit"><span class="ico">📅</span><b>Horizonte</b><span>${c.hor}</span></div>
+      <div class="crit"><span class="ico">📈</span><b>Volatilidad</b><span>${c.vol}</span></div>
+      <div class="crit"><span class="ico">💱</span><b>Moneda</b><span>Que calce con la moneda en la que gastas</span></div>
+    </div>
+    <div class="crit-nota">Un vehículo no es bueno o malo en el aire: depende de estos 4.</div></div>`;
+}
+
+/* ============================================================
+   RADIOGRAFÍA — cómo estoy hoy vs. mi yo ideal
+   ============================================================ */
+function n0(v){ return Number(v) || 0; }
+function mezclaReal(b){
+  if(!b) return null;
+  const liq = n0(b.activo_liquidez_cop), rf = n0(b.activo_rentaFija_cop), rv = n0(b.activo_mercado_cop);
+  const tot = liq + rf + rv; if(tot <= 0) return null;
+  const pRv = Math.round(rv/tot*100), pRf = Math.round(rf/tot*100);
+  return { rv:pRv, rf:pRf, liq:100 - pRv - pRf, total:tot };
+}
+function filasRadiografia(b, r){
+  const real = mezclaReal(b); if(!real || !r) return null;
+  return [
+    { k:"Renta variable", parte:"tronco",  real:real.rv,  obj:n0(r.rango_rentaVariable_pct) },
+    { k:"Renta fija",     parte:"raices",  real:real.rf,  obj:n0(r.rango_rentaFija_pct) },
+    { k:"Liquidez",       parte:"agua",    real:real.liq, obj:n0(r.rango_liquidez_pct) },
+    { k:"Injerto",        parte:"injerto", real:0,        obj:n0(r.injerto_pct) }
+  ].map(x => Object.assign(x, { gap: x.obj - x.real }));
+}
+function brechaSugerida(){
+  const filas = filasRadiografia(panelDatos.balance, sesionV.rango_s1 || panelDatos.rango_s1);
+  if(!filas) return null;
+  const top = filas.filter(x => x.parte !== "injerto").sort((a, b) => b.gap - a.gap)[0];
+  if(!top || top.gap < 1) return null;
+  return { clave: top.parte, gap: top.gap, nombre: top.k };
+}
+function radiografiaHTML(b, r){
+  const filas = filasRadiografia(b, r);
+  if(!filas) return `<div class="microcopy">Aún no tenemos tu balance para comparar tu mezcla de hoy con tu objetivo.</div>`;
+  return `<div class="rad-leyenda"><span><i class="sw hoy"></i>Hoy</span><span><i class="sw obj"></i>Mi objetivo</span></div>` +
+    filas.map(x => {
+      const txt = x.gap >= 3 ? `Te faltan ${x.gap} pts` : x.gap <= -3 ? `Te sobran ${-x.gap} pts` : "En rango ✓";
+      const cls = x.gap >= 3 ? "falta" : x.gap <= -3 ? "sobra" : "ok";
+      return `<div class="rad-row"><div class="rad-top"><b>${x.k}</b><span>Hoy ${x.real}% · Objetivo ${x.obj}%</span></div>
+        <div class="rad-bar"><div class="rad-hoy" style="width:${Math.min(100, x.real)}%"></div><div class="rad-obj" style="left:calc(${Math.min(100, x.obj)}% - 1.5px)"></div></div>
+        <div class="rad-gap ${cls}">${txt}</div></div>`;
+    }).join("") +
+    `<div class="footer-nota">Tu mezcla de hoy se calcula sobre lo invertible de tu Balance (liquidez, renta fija e inversión de mercado). Las cripto del Balance cuentan dentro de la inversión de mercado.</div>`;
+}
+
+/* ============================================================
+   CHEQUEO DE MONO-CULTIVO
+   ============================================================ */
+const TICKER_INDICE = {
+  VOO:"S&P 500", SPY:"S&P 500", IVV:"S&P 500", SPLG:"S&P 500", VFIAX:"S&P 500", IVVB11:"S&P 500",
+  VTI:"Mercado total EE.UU.", ITOT:"Mercado total EE.UU.", SCHB:"Mercado total EE.UU.",
+  QQQ:"Nasdaq 100", QQQM:"Nasdaq 100",
+  VXUS:"Internacional sin EE.UU.", IXUS:"Internacional sin EE.UU.",
+  VT:"Mercado global", ACWI:"Mercado global",
+  XLK:"Tecnología EE.UU.", VGT:"Tecnología EE.UU.", XLE:"Energía EE.UU.", VDE:"Energía EE.UU.", XLV:"Salud EE.UU.", VHT:"Salud EE.UU.",
+  FXI:"China", MCHI:"China", INDA:"India", EPI:"India", EWZ:"Brasil", BOVA11:"Brasil",
+  IWM:"Small caps EE.UU.", BND:"Bonos EE.UU.", AGG:"Bonos EE.UU.",
+  GLD:"Oro", IAU:"Oro", ICOLCAP:"COLCAP (Colombia)", NAFTRAC:"IPC (México)",
+  BITCOIN:"Bitcoin", BTC:"Bitcoin", ETHEREUM:"Ethereum", ETH:"Ethereum"
+};
+function indiceDe(ticker){ return TICKER_INDICE[String(ticker || "").toUpperCase().replace(/[^A-Z0-9]/g, "")] || ""; }
+function holdingsDe(b){
+  const t = b && b.activo_mercado_detalle; if(!t) return [];
+  return String(t).split(" · ").map(x => { const m = x.match(/^(.*?) \[(.*?)\]/); return m ? { ticker:m[1].trim(), tipo:m[2].trim() } : null; }).filter(Boolean);
+}
+function duplicadosMono(hs){
+  const g = {};
+  hs.forEach(h => { const ix = indiceDe(h.ticker); if(ix) (g[ix] = g[ix] || []).push(h.ticker); });
+  return Object.keys(g).filter(k => g[k].length > 1).map(k => g[k].join(" + ") + " siguen lo mismo (" + k + ")");
+}
+function pantallaMono(){
+  const hs = holdingsDe(panelDatos.balance);
+  const dup = duplicadosMono(hs);
+  const filas = hs.map(h => { const ix = indiceDe(h.ticker); return `
+    <div class="mono-row">
+      <div><b>${esc(h.ticker)}</b> <span class="mono-tipo">${esc(h.tipo)}</span>${ix ? `<div class="mono-ix">Sigue: ${esc(ix)}</div>` : ""}</div>
+      <label class="mono-chk"><input type="checkbox" class="mono-marca" value="${esc(h.ticker)}"> Repite otro</label>
+    </div>`; }).join("");
+  const alerta = dup.length
+    ? `<div class="microcopy" style="background:rgba(178,74,114,0.12); color:var(--alerta);">⚠️ ${dup.map(esc).join("; ")}. Es la misma apuesta con distintos nombres.</div>`
+    : `<div class="microcopy">No detectamos repetidos entre los que reconocemos. Revisa tú también: marca los que creas que siguen el mismo índice o sector que otro.</div>`;
+  document.getElementById("app").innerHTML = `
+    ${headerS2()}
+    ${progreso(2,4,"Paso 2 de 4 · Chequeo de mono-cultivo")}
+    <div class="card">
+      <h2>¿Estás realmente diversificada?</h2>
+      <p class="lead">Tener varios ETFs no es lo mismo que diversificar: si siguen el mismo índice o sector, es la misma apuesta con distinto nombre. Estos son tus holdings del Balance.</p>
+      ${filas}
+      ${alerta}
+      <label>Lo que notas (opcional)</label>
+      <textarea id="in-mono-nota" placeholder="Ej: tengo dos ETFs de tecnología de EE.UU."></textarea>
+      <button class="btn" onclick="guardarMono()">Continuar al menú de vehículos</button>
+      <button class="link-volver" onclick="pantallaBrecha()">Volver</button>
+    </div>
+  `;
+}
+function guardarMono(){
+  const hs = holdingsDe(panelDatos.balance);
+  const marcas = Array.from(document.querySelectorAll(".mono-marca:checked")).map(x => x.value);
+  const nota = document.getElementById("in-mono-nota").value.trim();
+  const partes = duplicadosMono(hs).concat(marcas.length ? ["Marcados por mí: " + marcas.join(", ")] : [], nota ? [nota] : []);
+  sesionV.mono = partes.join(" | ") || "Sin repetidos";
+  sesionV.monoOk = true;
+  pantallaMenu();
+}
+
+/* ============================================================
+   ENTREGABLE — Mi Estrategia de Inversión (PDF de 2 páginas)
+   ============================================================ */
+function pantallaEntregable(){
+  const b = panelDatos.balance || {}, r = panelDatos.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [];
+  const nombre = r.nombre || b.nombre || sesionV.nombre || "";
+  const hoy = new Date().toLocaleDateString("es-CO", { day:"numeric", month:"long", year:"numeric" });
+  const meta = r.metaPrincipal || b.metaPrincipal || "";
+  const horiz = r.metaHorizonteOriginal || b.metaHorizonte || "";
+  const palabras = b.metaPalabras || r.metaPalabras || "";
+  const perfil = r.perfilRiesgo || b.perfilRiesgoCategoria || "";
+  const sug = brechaSugerida();
+  const mono = (vs.find(v => v.monoCultivo) || {}).monoCultivo || "";
+  const primer = vs.filter(v => v.primerPaso).map(v => v.primerPaso).join(" · ");
+  const quien = `<div class="doc-quien">${esc(nombre)}<div class="doc-sub">${hoy}</div></div>`;
+  const filasV = vs.length ? vs.map(v => `<tr><td>${esc(v.parteJardin||"")}</td><td>${esc(v.vehiculoElegido||"")}</td><td>${cop(v.monto_vehiculo_cop)}</td><td>${esc(v.cuandoAportar||"")}</td><td>${esc(v.porQueCumple||"")}${v.criterios ? `<div class="doc-sub">Criterios: ${esc(v.criterios)}</div>` : ""}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="doc-sub">Aún no has elegido vehículos.</td></tr>`;
+  document.getElementById("app").innerHTML = `
+    <div class="no-print acciones-doc">
+      <button class="btn" onclick="window.print()">Descargar PDF / Imprimir</button>
+      <small>En la ventana de impresión elige "Guardar como PDF".</small>
+      <button class="link-volver" onclick="pantallaPanel()">← Volver a mi panel</button>
+    </div>
+    <div class="doc">
+      <section class="doc-page">
+        <div class="doc-head">
+          <img class="logo" src="assets/logo-feminario.png" alt="Feminario">
+          <div style="flex:1; text-align:center;"><h1 class="doc-titulo">Mi Estrategia de Inversión</h1><div class="doc-sub">Página 1 · Mi punto de partida</div></div>
+          ${quien}
+        </div>
+        <div class="doc-meta"><b>Mi meta grande:</b> ${esc(meta)}${horiz ? " · " + esc(horiz) : ""}${palabras ? `<div class="frase">“${esc(palabras)}”</div>` : ""}</div>
+        <table><tr><th>Perfil de riesgo</th><th>Horizonte elegido</th><th>Patrimonio neto</th></tr>
+          <tr><td>${esc(perfil)}</td><td>${esc(r.horizonteElegido||"")}</td><td>${b.patrimonioNeto_cop !== undefined ? cop(b.patrimonioNeto_cop) : (r.patrimonioNeto_cop !== undefined ? cop(r.patrimonioNeto_cop) : "")}</td></tr></table>
+        <h4>Mi radiografía: hoy vs. mi yo ideal</h4>
+        ${radiografiaHTML(b, r)}
+        <h4>Mi rango objetivo</h4>
+        <table><tr><th>Renta variable</th><th>Renta fija</th><th>Liquidez</th><th>Injerto</th></tr>
+          <tr><td>${n0(r.rango_rentaVariable_pct)}%</td><td>${n0(r.rango_rentaFija_pct)}%</td><td>${n0(r.rango_liquidez_pct)}%</td><td>${n0(r.injerto_pct)}%</td></tr></table>
+        ${r.nota ? `<div class="doc-sub" style="margin-top:6px;">Mi nota: ${esc(r.nota)}</div>` : ""}
+        <div class="doc-pie">Feminario · Tu Portafolio, Tu Estrategia · Es una guía educativa, no una recomendación de inversión.</div>
+      </section>
+      <section class="doc-page">
+        <div class="doc-head">
+          <img class="logo" src="assets/logo-feminario.png" alt="Feminario">
+          <div style="flex:1; text-align:center;"><h1 class="doc-titulo">Mis Vehículos Elegidos</h1><div class="doc-sub">Página 2 · Sesión 2 · ${FECHA_SESION2_LABEL}</div></div>
+          <div class="doc-ilus"><img src="assets/camioneta.png" alt=""></div>
+        </div>
+        <h4>Lo que traigo de la sesión 1</h4>
+        <div class="doc-meta">Mi rango objetivo: renta variable ${n0(r.rango_rentaVariable_pct)}% · renta fija ${n0(r.rango_rentaFija_pct)}% · liquidez ${n0(r.rango_liquidez_pct)}% · injerto ${n0(r.injerto_pct)}%<br>Mi brecha más grande: ${sug ? esc(sug.nombre) + " (te faltan " + sug.gap + " pts)" : "—"}</div>
+        <h4>Chequeo de mono-cultivo</h4>
+        <div class="doc-meta">${mono ? esc(mono) : "—"}</div>
+        <h4>Mi vehículo elegido</h4>
+        <table><tr><th>Parte del jardín</th><th>Vehículo</th><th>Monto</th><th>Fecha para abrirlo o aportar</th><th>Por qué cumple los 4 criterios</th></tr>${filasV}</table>
+        <h4>Mi primer paso esta semana</h4>
+        <div class="doc-meta">${primer ? esc(primer) : "—"}</div>
+        <h4>Lo que sigue</h4>
+        <div class="doc-sub" style="font-size:13px;">29 de octubre, sesión 3: conozco los arquetipos de estrategia de inversión y elijo cuál me hace sentido.</div>
+        <div class="doc-pie">Los vehículos son categorías, no recomendaciones puntuales: confirma tasas, comisiones y condiciones vigentes antes de decidir. · feminario.co</div>
+      </section>
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+
+/* ============================================================
    UTILIDADES
    ============================================================ */
 function cop(v){ v = Number(v)||0; const signo = v<0?"-":""; return signo + "$" + Math.round(Math.abs(v)).toLocaleString("es-CO"); }
@@ -2016,6 +2290,8 @@ function pantallaResumenS1(){
       <div class="resumen-row"><span class="k">Renta fija</span><span class="v">${esc(String(r.rango_rentaFija_pct||0))}%</span></div>
       <div class="resumen-row"><span class="k">Liquidez</span><span class="v">${esc(String(r.rango_liquidez_pct||0))}%</span></div>
       <div class="resumen-row"><span class="k">Injerto</span><span class="v">${esc(String(r.injerto_pct||0))}%</span></div>
+      <h3>Cómo estás hoy vs. tu objetivo</h3>
+      ${radiografiaHTML(panelDatos.balance, r)}
       <div class="microcopy">¿Es lo mismo tener varios ETFs en el portafolio que tener realmente diversificación? Hoy lo resolvemos.</div>
       <button class="btn" onclick="pantallaBrecha()">Continuar</button>
     </div>
@@ -2026,10 +2302,12 @@ function pantallaResumenS1(){
    PANTALLA 3 — ¿CUÁL ES TU BRECHA MÁS GRANDE?
    ============================================================ */
 function pantallaBrecha(){
+  const sug = brechaSugerida();
+  if(!sesionV.brecha && sug) sesionV.brecha = sug.clave;
   const opciones = MENU_VEHICULOS.map(f => `
     <div class="jardin-pick ${sesionV.brecha===f.clave?'sel':''}" onclick="elegirBrecha('${f.clave}')">
       <span class="dot" style="background:${f.color}"></span>
-      <div><div class="nom">${f.nombre}</div><div class="sub">${f.sub}</div></div>
+      <div><div class="nom">${f.nombre}</div><div class="sub">${f.sub}</div>${sug && sug.clave===f.clave ? `<div class="sug">⭐ Tu brecha más grande: te faltan ${sug.gap} pts</div>` : ""}</div>
     </div>
   `).join("");
   document.getElementById("app").innerHTML = `
@@ -2040,7 +2318,7 @@ function pantallaBrecha(){
       <p class="lead">Antes de elegir, revisa si ya tienes mono-cultivo sin saberlo: si ya inviertes en mercado, mira tu lista de holdings del Balance de Portafolio — ¿cuántos siguen en realidad el mismo índice o sector? Dos ETFs de "tecnología de EE.UU." con nombres distintos son la misma apuesta repetida.</p>
       <p class="lead">Elige la parte de tu jardín donde la diferencia entre tu rango objetivo y lo que ya tienes sembrado es más grande.</p>
       <div class="opciones">${opciones}</div>
-      <button class="btn" id="btn-continuar-brecha" onclick="irAMenu()" disabled>Ver vehículos para esta parte</button>
+      <button class="btn" id="btn-continuar-brecha" onclick="irAMenu()" ${sesionV.brecha ? "" : "disabled"}>Ver vehículos para esta parte</button>
       <button class="link-volver" onclick="pantallaResumenS1()">Volver</button>
     </div>
   `;
@@ -2053,6 +2331,7 @@ function elegirBrecha(clave){
 }
 function irAMenu(){
   if(!sesionV.brecha){ toast("Elige una parte del jardín primero 💛"); return; }
+  if(!sesionV.monoOk && holdingsDe(panelDatos.balance).length){ pantallaMono(); return; }
   pantallaMenu();
 }
 
@@ -2069,6 +2348,7 @@ function pantallaMenu(){
     ${progreso(2,4,"Paso 2 de 4 · Menú de vehículos")}
     <div class="card">
       <h2 style="color:${f.color}">${f.nombre} — vehículos reales</h2>
+      ${criteriosHTML(f)}
       <div class="vehiculo-card">
         <div class="frase">"${f.frase}"</div>
         <p style="margin:0 0 4px; font-weight:700; color:var(--morado-oscuro); font-size:13.5px;">En Colombia, típicamente:</p>
@@ -2102,6 +2382,10 @@ function pantallaVehiculo(){
       <input type="number" id="in-monto" min="0" step="1" value="${Number(ve.monto_vehiculo_cop)||""}" placeholder="Ej: 500000">
       <label>¿Cuándo lo vas a abrir o aportar?</label>
       <input type="text" id="in-cuando" value="${esc(ve.cuandoAportar||"")}" placeholder="Ej: esta semana, antes de fin de mes, 30 de octubre...">
+      <label>Mi vehículo cumple los 4 criterios (marca los que sí)</label>
+      <div class="crit-checks">${CRITERIOS_LISTA.map(c => `<label class="chip"><input type="checkbox" class="crit-chk" value="${c.k}" ${(ve.criterios||"").includes(c.k) ? "checked" : ""}> ${c.t}</label>`).join("")}</div>
+      <label>¿Por qué cumple esos criterios? <span style="font-weight:400; color:var(--texto-suave);">(una frase)</span></label>
+      <textarea id="in-porque" placeholder="Ej: lo puedo sacar en 1-2 días y mis gastos son en pesos...">${esc(ve.porQueCumple||"")}</textarea>
       <div class="checkbox-row">
         <input type="checkbox" id="in-yatenia" ${ve.yaTeniaEnEstaParte==="sí" ? "checked" : ""}>
         <label style="margin:0; font-weight:600;" for="in-yatenia">Ya tengo algo sembrado en esta parte y confirmé que este vehículo no repite lo que ya tengo</label>
@@ -2110,6 +2394,11 @@ function pantallaVehiculo(){
       <textarea id="in-quetenia" placeholder="Ej: ya tengo un ETF de tecnología de EE.UU., este nuevo es de mercados emergentes...">${esc(ve.queTeniaYa||"")}</textarea>
       <label>Nota libre <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
       <textarea id="in-nota" placeholder="Cualquier cosa que quieras recordar sobre esta decisión...">${esc(ve.nota||"")}</textarea>
+      <label>Mi primer paso esta semana</label>
+      <input type="text" id="in-primerpaso" value="${esc(ve.primerPaso||"")}" placeholder="Ej: abrir la cuenta y mover $200.000">
+      <label>¿Qué te gustaría aprender sobre vehículos de inversión? <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
+      <div class="crit-checks">${APRENDER_OPCIONES.map(o => `<label class="chip"><input type="checkbox" class="ap-chk" value="${esc(o)}" ${(ve.quiereAprender||"").includes(o) ? "checked" : ""}> ${o}</label>`).join("")}</div>
+      <textarea id="in-aprender" placeholder="¿Algo más que quieras aprender?"></textarea>
       <button class="btn" onclick="guardarVehiculo()">${vehiculoEditando ? "Guardar cambios" : "Guardar mi vehículo"}</button>
       <button class="link-volver" onclick="${vehiculoEditando ? "vehiculoEditando=null; pantallaPanel()" : "pantallaMenu()"}">${vehiculoEditando ? "← Volver a mi panel" : "Volver al menú"}</button>
     </div>
@@ -2124,6 +2413,11 @@ function guardarVehiculo(){
   const yaTenia = document.getElementById("in-yatenia").checked;
   const queTenia = document.getElementById("in-quetenia").value.trim();
   const nota = document.getElementById("in-nota").value.trim();
+  const criterios = Array.from(document.querySelectorAll(".crit-chk:checked")).map(x => x.value).join("; ");
+  const porQue = document.getElementById("in-porque").value.trim();
+  const primerPaso = document.getElementById("in-primerpaso").value.trim();
+  const aprenderTxt = document.getElementById("in-aprender").value.trim();
+  const quiereAprender = Array.from(document.querySelectorAll(".ap-chk:checked")).map(x => x.value).concat(aprenderTxt ? [aprenderTxt] : []).join("; ");
 
   const f = filaMenu(sesionV.brecha);
   const ed = vehiculoEditando;
@@ -2141,7 +2435,12 @@ function guardarVehiculo(){
     cuandoAportar: cuando,
     yaTeniaEnEstaParte: yaTenia ? "sí" : "no",
     queTeniaYa: queTenia,
-    nota: nota
+    nota: nota,
+    criterios: criterios,
+    porQueCumple: porQue,
+    primerPaso: primerPaso,
+    monoCultivo: sesionV.mono || (ed && ed.monoCultivo) || "",
+    quiereAprender: quiereAprender
   };
   if(ed) registro.idAnterior = ed.id;
   enviarABaseDeDatos(registro);
@@ -2197,6 +2496,7 @@ function pantallaConfirmacionS2(){
       ${listaVehiculosHTML(panelDatos.vehiculos_s2)}
       <div class="microcopy">Hoy pasaste del plano al vehículo real. El 29 de octubre conocen los arquetipos de estrategia de inversión — desde quien sigue solo índices hasta quien arma su propia tesis — y eligen cuál les hace sentido.</div>
       <button class="btn" onclick="elegirOtroVehiculo()">Elegir otro vehículo (otra parte del jardín u otro en la misma)</button>
+      <button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>
       <button class="btn secundario" onclick="pantallaPanel()">Ver mi panel</button>
       <button class="btn secundario" onclick="sesionV={email:null,nombre:null,rango_s1:null,brecha:null,vehiculo:null}; emailOrquestador=''; pantallaInicioUnificado();">Hacer el ejercicio de otra persona</button>
       <div class="footer-nota">Explorar más recursos de Feminario: <a href="${LINK_EXPLORAR}" target="_blank" rel="noopener" style="color:var(--morado);">${LINK_EXPLORAR}</a></div>
@@ -2216,7 +2516,7 @@ function headerOrquestador(sub){
 }
 
 function pantallaInicioUnificado(mensajeError){
-  panelDatos = panelVacio(); vehiculoEditando = null; sesion.editando = false;
+  panelDatos = panelVacio(); vehiculoEditando = null; sesion.editando = false; sesionV.monoOk = false; sesionV.mono = "";
   document.getElementById("app").innerHTML = `
     ${headerOrquestador("Bienvenida")}
     <div class="card">
@@ -2298,6 +2598,8 @@ function pantallaPanel(){
       ${vs.map(v => `
         <div style="margin:10px 0 12px;">
           <div class="resumen-row"><span class="k">${esc(v.parteJardin||"")}</span><span class="v">${esc(v.vehiculoElegido||"")} · ${cop(v.monto_vehiculo_cop)}</span></div>
+          ${v.cuandoAportar ? `<div class="detalle-v">📅 ${esc(v.cuandoAportar)}${v.primerPaso ? " · 👣 " + esc(v.primerPaso) : ""}</div>` : ""}
+          ${v.porQueCumple ? `<div class="detalle-v">💬 ${esc(v.porQueCumple)}</div>` : ""}
           <div class="panel-acciones">
             <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar</button>
             <button class="btn-mini peligro" onclick="quitarVehiculo('${esc(v.id)}')">Quitar</button>
@@ -2306,6 +2608,12 @@ function pantallaPanel(){
       <div class="panel-acciones"><button class="btn-mini" onclick="elegirOtroVehiculo()">+ Agregar otro vehículo</button></div>
     </div>` : "";
 
+  const cardRadiografia = (b && r && mezclaReal(b)) ? `
+    <div class="vehiculo-card">
+      <h3>Mi radiografía: hoy vs. mi yo ideal</h3>
+      ${radiografiaHTML(b, r)}
+    </div>` : "";
+  const botonEntregable = r ? `<button class="btn secundario" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>` : "";
   let siguiente = "";
   if(b && !r){
     siguiente = `<div class="microcopy">Siguiente paso: tu Rango Objetivo.</div>
@@ -2321,7 +2629,7 @@ function pantallaPanel(){
     ${headerOrquestador("Tu Estrategia")}
     <div class="card">
       <p class="lead">Hola${nombre ? ", " + esc(nombre) : ""} 👋 Esto es lo que llevas de tu Estrategia de Inversión.</p>
-      ${cardBalance}${cardRango}${cardVehiculos}
+      ${cardBalance}${cardRango}${cardRadiografia}${cardVehiculos}${botonEntregable}
       ${siguiente}
       <button class="link-volver" onclick="pantallaInicioUnificado()">← Usar otro correo</button>
     </div>
