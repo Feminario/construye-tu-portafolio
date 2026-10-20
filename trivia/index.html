@@ -55,6 +55,25 @@
   .perfil-etiqueta{ font-size:11.5px; font-weight:700; letter-spacing:1.1px; text-transform:uppercase; color:var(--morado); margin-top:8px; }
   .perfil-nombre{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:24px; color:var(--morado-oscuro); margin:4px 0 6px; line-height:1.15; }
   .perfil-frase{ margin:0; font-size:14px; color:var(--texto); }
+  /* Modo oscuro */
+  @media (prefers-color-scheme: dark){
+    :root{ --crema:#221f2e; --texto:#ECE9F5; --texto-suave:#B6B0CC; --morado-oscuro:#E4E1F5; }
+    body{ background-color:#221f2e; background-image:radial-gradient(circle at 10% 0%, rgba(126,132,174,.25), transparent 45%), radial-gradient(circle at 100% 100%, rgba(223,243,175,.06), transparent 40%); }
+    .card{ background:rgba(43,39,57,.88); border-color:rgba(255,255,255,.1); box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .opcion{ background:#2b2739; border-color:rgba(194,203,255,.3); color:var(--texto); }
+    .opcion.ok{ background:rgba(62,143,99,.22); border-color:#5BBE8A; }
+    .opcion.mal{ background:rgba(178,74,114,.2); border-color:#D4709A; }
+    .caso-ficha{ background:rgba(223,243,175,.1); }
+    .resp{ background:rgba(194,203,255,.1); }
+    .resp.bien{ background:rgba(62,143,99,.2); }
+    .resp.mal{ background:rgba(178,74,114,.18); }
+    .btn.sec{ background:#2b2739; color:var(--morado-oscuro); border-color:rgba(194,203,255,.3); }
+    .barra{ background:rgba(255,255,255,.12); }
+    .fila{ border-bottom-color:rgba(255,255,255,.12); }
+    .perfil{ color:#3A3550; }
+    .perfil .perfil-nombre, .perfil .perfil-frase{ color:#3A3550; }
+    .perfil .perfil-etiqueta{ color:#5a5f86; }
+  }
 </style>
 </head>
 <body>
