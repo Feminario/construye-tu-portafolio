@@ -2745,6 +2745,9 @@ function elegirBrecha(clave){
 function irAMenu(){
   if(!sesionV.brecha){ toast("Elige una parte del jardín primero 💛"); return; }
   sesionV.filtroPais = "Todos"; sesionV.catalogoElegido = null;
+  // El chequeo de mono-cultivo se hace una sola vez por persona: si ya lo guardó en un vehículo anterior, no se repite
+  const previo = (panelDatos.vehiculos_s2 || []).find(v => v.monoCultivo);
+  if(previo && !sesionV.monoOk){ sesionV.monoOk = true; sesionV.mono = previo.monoCultivo; }
   if(!sesionV.monoOk && holdingsDe(panelDatos.balance).length){ pantallaMono(); return; }
   pantallaMenu();
 }
