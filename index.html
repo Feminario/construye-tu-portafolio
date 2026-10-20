@@ -2259,12 +2259,17 @@ function filasRadiografia(b, r, vs){
     { k:"Injerto",        parte:"injerto", real:0,        obj:n0(r.injerto_pct),             proy:proy(0, alloc.injerto) }
   ].map(x => Object.assign(x, { gap: x.obj - x.real }));
 }
-function brechaSugerida(){
-  const filas = filasRadiografia(panelDatos.balance, sesionV.rango_s1 || panelDatos.rango_s1);
+function brechaSugerida(restante){
+  // restante = true: lo que aún falta DESPUÉS de los vehículos ya elegidos (para sugerir el siguiente)
+  const vs = panelDatos.vehiculos_s2 || [];
+  const filas = filasRadiografia(panelDatos.balance, sesionV.rango_s1 || panelDatos.rango_s1, restante ? vs : []);
   if(!filas) return null;
-  const top = filas.filter(x => x.parte !== "injerto").sort((a, b) => b.gap - a.gap)[0];
-  if(!top || top.gap < 1) return null;
-  return { clave: top.parte, gap: top.gap, nombre: top.k };
+  const rest = filas.filter(x => x.parte !== "injerto")
+    .map(x => Object.assign({}, x, { falta: x.obj - ((restante && x.proy !== null) ? x.proy : x.real) }))
+    .sort((a, b) => b.falta - a.falta);
+  const top = rest[0];
+  if(!top || top.falta < 1) return null;
+  return { clave: top.parte, gap: top.falta, nombre: top.k, conVehiculos: !!(restante && vs.length) };
 }
 function radiografiaHTML(b, r, vs, opts){
   opts = opts || {};
@@ -2710,12 +2715,12 @@ function pantallaResumenS1(){
    PANTALLA 3 — ¿CUÁL ES TU BRECHA MÁS GRANDE?
    ============================================================ */
 function pantallaBrecha(){
-  const sug = brechaSugerida();
+  const sug = brechaSugerida(true);
   if(!sesionV.brecha && sug) sesionV.brecha = sug.clave;
   const opciones = MENU_VEHICULOS.map(f => `
     <div class="jardin-pick ${sesionV.brecha===f.clave?'sel':''}" onclick="elegirBrecha('${f.clave}')">
       <span class="dot" style="background:${f.color}"></span>
-      <div><div class="nom">${f.nombre}</div><div class="sub">${f.sub}</div>${sug && sug.clave===f.clave ? `<div class="sug">⭐ Tu brecha más grande: te faltan ${sug.gap} pts</div>` : ""}</div>
+      <div><div class="nom">${f.nombre}</div><div class="sub">${f.sub}</div>${sug && sug.clave===f.clave ? `<div class="sug">⭐ ${sug.conVehiculos ? "Lo que más te falta todavía" : "Tu brecha más grande"}: te faltan ${sug.gap} pts</div>` : ""}${(() => { const n = (panelDatos.vehiculos_s2 || []).filter(v => v.parteJardin === f.nombre).length; return n ? `<div class="sug">✓ Ya elegiste ${n} aquí</div>` : ""; })()}</div>
     </div>
   `).join("");
   document.getElementById("app").innerHTML = `
