@@ -652,6 +652,34 @@
   .cat-ojo{ font-size:12.5px; color:var(--morado-oscuro); margin:4px 0 8px; }
   .cat-elegido{ background:rgba(223,243,175,0.55); border-radius:16px; padding:12px 14px; margin:0 0 12px; font-size:13.5px; }
   .cat-elegido b{ font-family:'MuseoModerno','Montserrat',sans-serif; font-size:16px; color:var(--morado-oscuro); }
+  /* ---- Modo oscuro de los componentes nuevos ---- */
+  .doc{ --texto:#3A3550; --texto-suave:#6b6684; --morado-oscuro:#4C4F68; --morado-suave:#9AA0C7; --superficie:#FFFFFF; color:#3A3550; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .cat-card, :root:not([data-theme="light"]) .circ, :root:not([data-theme="light"]) .filtro, :root:not([data-theme="light"]) .chip, :root:not([data-theme="light"]) .info-rapida > div{ background:var(--superficie); border-color:rgba(194,203,255,0.28); }
+    :root:not([data-theme="light"]) .filtro.sel{ background:var(--morado); border-color:var(--morado); color:#fff; }
+    :root:not([data-theme="light"]) .cat-perfil .pf{ background:rgba(194,203,255,0.14); }
+    :root:not([data-theme="light"]) .cat-pais{ background:rgba(206,162,221,0.22); }
+    :root:not([data-theme="light"]) .circ-anillo{ background:transparent; border:none; }
+    :root:not([data-theme="light"]) .crit{ background:rgba(255,255,255,0.06); }
+    :root:not([data-theme="light"]) .crit-box, :root:not([data-theme="light"]) .kpi, :root:not([data-theme="light"]) .vehiculo-card, :root:not([data-theme="light"]) .microcopy{ background:rgba(194,203,255,0.1); }
+    :root:not([data-theme="light"]) .meta-card, :root:not([data-theme="light"]) .cat-elegido, :root:not([data-theme="light"]) .brecha-call, :root:not([data-theme="light"]) .veh-meta{ background:rgba(223,243,175,0.12); }
+    :root:not([data-theme="light"]) .hito-card, :root:not([data-theme="light"]) .paso-card{ background:rgba(206,162,221,0.16); }
+    :root:not([data-theme="light"]) .volver-panel-bar{ background:rgba(194,203,255,0.16); }
+    :root:not([data-theme="light"]) .btn-mini{ color:var(--morado-oscuro); }
+  }
+  :root[data-theme="dark"] .cat-card, :root[data-theme="dark"] .circ, :root[data-theme="dark"] .filtro, :root[data-theme="dark"] .chip, :root[data-theme="dark"] .info-rapida > div{ background:var(--superficie); border-color:rgba(194,203,255,0.28); }
+  :root[data-theme="dark"] .filtro.sel{ background:var(--morado); border-color:var(--morado); color:#fff; }
+  :root[data-theme="dark"] .cat-perfil .pf{ background:rgba(194,203,255,0.14); }
+  :root[data-theme="dark"] .cat-pais{ background:rgba(206,162,221,0.22); }
+  :root[data-theme="dark"] .circ-anillo{ background:transparent; border:none; }
+  :root[data-theme="dark"] .crit{ background:rgba(255,255,255,0.06); }
+  :root[data-theme="dark"] .crit-box, :root[data-theme="dark"] .kpi, :root[data-theme="dark"] .vehiculo-card, :root[data-theme="dark"] .microcopy{ background:rgba(194,203,255,0.1); }
+  :root[data-theme="dark"] .meta-card, :root[data-theme="dark"] .cat-elegido, :root[data-theme="dark"] .brecha-call, :root[data-theme="dark"] .veh-meta{ background:rgba(223,243,175,0.12); }
+  :root[data-theme="dark"] .hito-card, :root[data-theme="dark"] .paso-card{ background:rgba(206,162,221,0.16); }
+  :root[data-theme="dark"] .volver-panel-bar{ background:rgba(194,203,255,0.16); }
+  :root[data-theme="dark"] .btn-mini{ color:var(--morado-oscuro); }
+  .doc .doc-meta, .doc .doc-kpi, .doc .cat-card{ color:#3A3550; }
+  .doc table, .doc td{ color:#3A3550; }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2319,12 +2347,12 @@ function donutSVG(partes, centro, anillo){
 function patrimonioHTML(b){
   const g = k => n0(b[k]);
   const items = [
-    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#7E84AE" },
+    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#C2CBFF" },
     { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#CEA2DD" },
     { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#F59356" },
     { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#F7C175" },
-    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#4C4F68" },
-    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#C2CBFF" },
+    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#7E84AE" },
+    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#F9E1FF" },
     { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#DFF3AF" }
   ].filter(x => x.v > 0);
   const total = items.reduce((s, x) => s + x.v, 0);
@@ -2386,12 +2414,12 @@ function aporteMetaHTML(b, r, v, meta){
 function patrimonioDocHTML(b){
   const g = k => n0(b[k]);
   const items = [
-    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#7E84AE" },
+    { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#C2CBFF" },
     { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#CEA2DD" },
     { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#F59356" },
     { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#F7C175" },
-    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#4C4F68" },
-    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#C2CBFF" },
+    { n:"Vivienda", v:g("activo_viviendaPropia_cop") + g("activo_viviendaInversion_cop"), c:"#7E84AE" },
+    { n:"Negocio propio", v:g("activo_negocio_cop"), c:"#F9E1FF" },
     { n:"Vehículo y otros", v:g("activo_vehiculo_cop") + g("activo_otrosActivos_cop"), c:"#DFF3AF" }
   ].filter(x => x.v > 0);
   const total = items.reduce((t, x) => t + x.v, 0);
