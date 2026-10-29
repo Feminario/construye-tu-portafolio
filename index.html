@@ -3618,6 +3618,11 @@ function pantallaPanel(){
       <div class="comp-fila"><div><h3>Mi Balance ✓</h3><div class="detalle-v">Último corte: ${esc(fmtFecha(b.fecha))}</div></div>
       <button class="btn-mini" onclick="actualizarBalance()">Actualizar</button></div>
     </div>` : "";
+  const cardEstiloCompacta = est ? `
+    <div class="vehiculo-card compacta">
+      <div class="comp-fila"><div><h3>Mi estilo de decisión ✓</h3><div class="detalle-v">${esc(est.estiloElegido || "")}${est.estiloMezcla ? " + " + esc(est.estiloMezcla) : ""}</div></div>
+      <button class="btn-mini" onclick="empezarSesion3()">Editar</button></div>
+    </div>` : "";
   const cardRango = r ? `
     <div class="vehiculo-card compacta">
       <div class="comp-fila"><div><h3>Mi yo ideal ✓</h3><div class="detalle-v">${n0(r.rango_rentaVariable_pct)}% renta variable · ${n0(r.rango_rentaFija_pct)}% renta fija · ${n0(r.rango_liquidez_pct)}% liquidez · ${n0(r.injerto_pct)}% injerto</div></div>
@@ -3671,7 +3676,7 @@ function pantallaPanel(){
       ${cardPatrimonio}
       ${cardRadiografia}
       ${cardVehiculos}
-      ${cardRango}${cardBalance}
+      ${cardEstiloCompacta}${cardRango}${cardBalance}
       ${botonEntregable}
       ${siguiente}
       <button class="link-volver" onclick="pantallaInicioUnificado()">← Usar otro correo</button>
