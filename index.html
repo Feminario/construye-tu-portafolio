@@ -3118,7 +3118,7 @@ const CRITERIOS_S3 = [
     ] }
 ];
 
-let sesionE = { respuestas:{}, sugeridos:[], estilo:null, mezcla:null, criterios:[], porque:"" };
+let sesionE = { respuestas:{}, sugeridos:[], estilo:null, mezcla:null, criterios:[], porque:"", editando:false };
 
 /* Hacia qué estilo(s) apuntan las respuestas (los de más puntos) */
 function sugeridosDe(respuestas){
@@ -3194,7 +3194,7 @@ function idealLineaS3(r){
    Si ya tenía un estilo guardado, lo precarga para editarlo. */
 function empezarSesion3(){
   const e = panelDatos.estilo_s3;
-  sesionE = { respuestas:{}, sugeridos:[], estilo:null, mezcla:null, criterios:[], porque:"" };
+  sesionE = { respuestas:{}, sugeridos:[], estilo:null, mezcla:null, criterios:[], porque:"", editando:false };
   if(e){
     const est = estiloPorNombre(e.estiloElegido), mez = estiloPorNombre(e.estiloMezcla);
     sesionE.estilo = est ? est.clave : null;
@@ -3205,6 +3205,11 @@ function empezarSesion3(){
       const i = c.opciones.findIndex(o => o.txt === e["resp_"+c.clave]);
       if(i >= 0) sesionE.respuestas[c.clave] = i;
     });
+    sesionE.sugeridos = sugeridosDe(sesionE.respuestas);
+    if(!sesionE.sugeridos.length){ const sg = estiloPorNombre(String(e.estiloSugerido||"").split(" / ")[0]); if(sg) sesionE.sugeridos = [sg.clave]; }
+    sesionE.editando = true;
+    pantallaElegirEstiloS3();
+    return;
   }
   pantallaAutodiagnostico();
 }
@@ -3316,7 +3321,7 @@ function pantallaElegirEstiloS3(){
     ${headerS3()}
     ${rutaS3(2)}
     <div class="card">
-      <h2>Elige el estilo que más te hace sentido hoy</h2>
+      <h2>${sesionE.editando ? "Edita tu estilo de decisión" : "Elige el estilo que más te hace sentido hoy"}</h2>
       <div class="opciones">${picks}</div>
       <label>¿Lo mezclas con otro estilo? <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
       <select id="in-mezcla" class="select-s3">${opcionesMezcla}</select>
@@ -3324,8 +3329,11 @@ function pantallaElegirEstiloS3(){
       ${checks}
       <label>¿Por qué este estilo?</label>
       <textarea id="in-porque" placeholder="Ej: tengo poco tiempo al mes y si el mercado cae me cuesta no vender, así que prefiero...">${esc(sesionE.porque)}</textarea>
-      <button class="btn" onclick="guardarEstiloS3()">Guardar mi estilo</button>
-      <button class="link-volver" onclick="pantallaEstilosS3(false)">Volver a los 4 estilos</button>
+      <button class="btn" onclick="guardarEstiloS3()">${sesionE.editando ? "Guardar cambios" : "Guardar mi estilo"}</button>
+      ${sesionE.editando
+        ? `<button class="btn secundario" onclick="pantallaAutodiagnostico()">Rehacer mi diagnóstico</button>
+           <button class="link-volver" onclick="pantallaPanel()">← Volver a mi panel</button>`
+        : `<button class="link-volver" onclick="pantallaEstilosS3(false)">Volver a los 4 estilos</button>`}
     </div>
   `;
   window.scrollTo(0, 0);
@@ -3362,6 +3370,7 @@ function guardarEstiloS3(){
   enviarABaseDeDatos(registro);
   panelDatos.estilo_s3 = registro;
 
+  if(sesionE.editando){ sesionE.editando = false; toast("Cambios guardados ✓"); pantallaPanel(); return; }
   pantallaConfirmacionS3();
 }
 
@@ -3371,7 +3380,7 @@ function guardarEstiloS3(){
 function pantallaConfirmacionS3(){
   const e = panelDatos.estilo_s3, est = estiloPorNombre(e.estiloElegido);
   const b = panelDatos.balance || {}, r = panelDatos.rango_s1 || sesionV.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [];
-  const meta = r.metaPrincipal || b.metaPrincipal || "";
+  const meta = b.metaPalabras || r.metaPalabras || r.metaPrincipal || b.metaPrincipal || "";
   const cerc = cercaniaMeta(panelDatos.balance, panelDatos.rango_s1, vs);
   document.getElementById("app").innerHTML = `
     ${headerS3()}
@@ -3539,11 +3548,11 @@ function pantallaPanel(){
   const horiz = (r && r.metaHorizonteOriginal) || (b && b.metaHorizonte) || "";
   const resta = plazoMeta(horiz, (b && b.fecha) || (r && r.fecha));
   const palabras = (b && b.metaPalabras) || (r && r.metaPalabras) || "";
-  const cardMeta = meta ? `<div class="meta-card">
+  const cardMeta = (meta || palabras) ? `<div class="meta-card">
       <div class="meta-top"><div>
       <div class="meta-et">🎯 Mi meta grande</div>
-      <div class="meta-t">${esc(meta)}</div>
-      ${palabras ? `<div class="meta-p">“${esc(palabras)}”</div>` : ""}
+      <div class="meta-t">${esc(palabras || meta)}</div>
+      ${(palabras && meta) ? `<div class="meta-p">${esc(meta)}</div>` : ""}
       ${(horiz || resta) ? `<div class="meta-s">${horiz ? "Plazo: " + esc(horiz.toLowerCase()) : ""}${resta ? " · quedan hasta " + resta : ""}</div>` : ""}
       </div><img class="meta-ilus" src="assets/ilus-cofre.png" alt=""></div>
       ${cercaniaMetaHTML(b, r, vs, meta)}
@@ -3566,7 +3575,7 @@ function pantallaPanel(){
           ${pasoV.d ? `<div class="hito-f">📅 ${esc(fechaEnTexto(pasoV.d))} · ${textoDias(diasHasta(pasoV.d))}</div>` : (pasoV.v.cuandoAportar ? `<div class="hito-f">📅 ${esc(pasoV.v.cuandoAportar)}</div>` : "")}
         </div>
       </div>` : "";
-  const bloqueMeta = meta ? cardMeta.replace("<!--HITO-->", hitoInterno) : (hitoInterno ? `<div class="meta-card">${hitoInterno}</div>` : "");
+  const bloqueMeta = (meta || palabras) ? cardMeta.replace("<!--HITO-->", hitoInterno) : (hitoInterno ? `<div class="meta-card">${hitoInterno}</div>` : "");
 
   /* Sesión 3: el diagnóstico va arriba (pendiente = invitación; hecho = su estilo) */
   const estI = est ? estiloPorNombre(est.estiloElegido) : null;
