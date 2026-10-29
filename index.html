@@ -680,6 +680,52 @@
   :root[data-theme="dark"] .btn-mini{ color:var(--morado-oscuro); }
   .doc .doc-meta, .doc .doc-kpi, .doc .cat-card{ color:#3A3550; }
   .doc table, .doc td{ color:#3A3550; }
+
+  /* ---- Sesión 3 y panel: recorrido, meta, estilo, diagnóstico, confeti ---- */
+  .ruta{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:4px 0 16px; }
+  .ruta-paso{ text-align:center; font-size:11.5px; font-weight:700; color:var(--texto-suave); line-height:1.25; }
+  .ruta-paso img{ width:34px; height:34px; object-fit:contain; display:block; margin:0 auto 5px; filter:grayscale(1); opacity:.3; }
+  .ruta-paso.hecho{ color:var(--morado-oscuro); }
+  .ruta-paso.hecho img{ filter:none; opacity:1; }
+  .ruta-paso.actual{ color:var(--morado); }
+  .ruta-paso.actual img{ filter:none; opacity:1; animation:latido 1.8s ease-in-out infinite; }
+  @keyframes latido{ 50%{ transform:scale(1.18) rotate(14deg); } }
+  @media (prefers-reduced-motion: reduce){ .ruta-paso.actual img{ animation:none; } }
+  .meta-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .meta-ilus{ width:88px; height:auto; flex-shrink:0; margin-top:4px; }
+  .meta-hito{ display:flex; gap:12px; align-items:center; background:rgba(255,255,255,0.78); border-radius:16px; padding:12px 14px; margin-top:16px; }
+  .meta-card .meta-hito:first-child{ margin-top:0; }
+  .estilo-card{ display:flex; gap:14px; align-items:center; background:linear-gradient(135deg, rgba(194,203,255,0.5), rgba(206,162,221,0.38)); border-radius:22px; padding:16px; margin:14px 0 16px; }
+  .estilo-card img{ width:72px; height:72px; object-fit:contain; flex-shrink:0; }
+  .estilo-card.invita{ margin-bottom:10px; }
+  .estilo-n{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:19px; color:var(--morado-oscuro); line-height:1.2; margin:2px 0 4px; }
+  .diag-hero{ text-align:center; background:linear-gradient(135deg, rgba(194,203,255,0.55), rgba(206,162,221,0.45)); border-radius:24px; padding:22px 18px; margin-bottom:16px; }
+  .diag-ilus{ display:flex; justify-content:center; gap:14px; margin-bottom:8px; }
+  .diag-ilus img{ width:130px; height:120px; object-fit:contain; }
+  .diag-et{ font-size:12px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--morado); }
+  .diag-n{ font-family:'MuseoModerno','Montserrat',sans-serif; font-weight:700; font-size:26px; color:var(--morado-oscuro); line-height:1.15; margin:4px 0; text-wrap:balance; }
+  .diag-s{ font-size:13.5px; color:var(--morado-oscuro); margin-bottom:10px; }
+  .diag-razones{ text-align:left; display:grid; gap:6px; margin-top:6px; }
+  .diag-razones.centro{ text-align:center; font-size:13.5px; color:var(--morado-oscuro); }
+  .diag-razon{ background:rgba(255,255,255,0.75); border-radius:12px; padding:8px 12px; font-size:13px; color:var(--texto); }
+  .diag-razon.suave{ opacity:.6; }
+  .estilo-det.destacado{ border:2px solid var(--morado); }
+  .estilo-det-top{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .estilo-det-top img{ width:56px; height:56px; object-fit:contain; flex-shrink:0; }
+  .estilo-det-n{ font-weight:800; color:var(--morado-oscuro); font-size:15px; }
+  .estilo-det-s{ font-size:12px; color:var(--texto-suave); }
+  .estilo-pick img{ width:46px; height:46px; object-fit:contain; flex-shrink:0; }
+  .select-s3{ width:100%; padding:13px 16px; border-radius:16px; border:1.5px solid rgba(126,132,174,0.28); font-size:15px; background:var(--superficie); color:var(--texto); font-family:inherit; }
+  canvas.confeti{ position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:200; }
+  .doc-ilus-libre{ width:130px; height:100px; object-fit:contain; justify-self:end; }
+  .doc table.doc-estilos td{ font-size:11.5px; vertical-align:top; }
+  .doc tr.fila-mia td{ background:rgba(223,243,175,0.6); }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .meta-hito, :root:not([data-theme="light"]) .diag-razon{ background:var(--superficie); }
+    :root:not([data-theme="light"]) .estilo-card, :root:not([data-theme="light"]) .diag-hero{ background:linear-gradient(135deg, rgba(194,203,255,0.14), rgba(206,162,221,0.12)); }
+  }
+  :root[data-theme="dark"] .meta-hito, :root[data-theme="dark"] .diag-razon{ background:var(--superficie); }
+  :root[data-theme="dark"] .estilo-card, :root[data-theme="dark"] .diag-hero{ background:linear-gradient(135deg, rgba(194,203,255,0.14), rgba(206,162,221,0.12)); }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2553,24 +2599,29 @@ async function descargarPDF(){
   }
 }
 
-/* Página 3 del PDF: el estilo de decisión (Sesión 3) */
+/* Página 3 del PDF: todo lo de la Sesión 3 (diagnóstico, estilo elegido, por qué, los 4 estilos y sus costos) */
 function paginaEstiloDocHTML(est){
   const e = estiloPorNombre(est.estiloElegido), m = estiloPorNombre(est.estiloMezcla);
-  const resp = CRITERIOS_S3.filter(c => est["resp_" + c.clave]).map(c => `<tr><td>${esc(c.nombre)}</td><td>${esc(est["resp_" + c.clave])}</td></tr>`).join("");
+  const resp = CRITERIOS_S3.filter(c => est["resp_" + c.clave]).map(c => `<tr><td><b>${esc(c.nombre)}</b></td><td>${esc(est["resp_" + c.clave])}</td></tr>`).join("");
+  const filasEstilos = ESTILOS_S3.map(x => `<tr class="${e && x.clave === e.clave ? "fila-mia" : ""}"><td><b>${esc(x.nombre)}</b><br><span class="doc-sub">${esc(x.sub)}</span></td><td>${esc(x.referente)}</td><td>${esc(x.comoSeVe)}</td><td>${esc(x.costo)}</td></tr>`).join("");
   return `
       <section class="doc-page">
         <div class="doc-head">
           <img class="logo" src="assets/logo-feminario.png" alt="Feminario">
           <div class="doc-centro"><h1 class="doc-titulo">Mi Estilo de Decisión</h1><div class="doc-sub">Página 3 · Sesión 3</div></div>
-          <div class="doc-ilus agua"><img src="assets/regadera.png" alt=""></div>
+          ${e ? `<img class="doc-ilus-libre" src="${e.img}" alt="">` : "<div></div>"}
         </div>
-        <h4>El estilo que elegí</h4>
-        <div class="doc-meta grande"><div class="doc-meta-t">${esc(est.estiloElegido || "")}${est.estiloMezcla ? " + " + esc(est.estiloMezcla) : ""}</div>${e ? `<div class="doc-sub">${esc(e.sub)} · Referente: ${esc(e.referente)}</div>` : ""}</div>
-        ${e ? `<div class="doc-meta"><b>Tesis:</b> ${esc(e.tesis)}<br><b>Cómo se ve:</b> ${esc(e.comoSeVe)}<br><b>Costo:</b> ${esc(e.costo)}</div>` : ""}
-        ${m ? `<div class="doc-meta"><b>Lo mezclo con ${esc(m.nombre)}:</b> ${esc(m.tesis)} (${esc(m.costo)})</div>` : ""}
-        <h4>Por qué</h4>
+        <div class="doc-meta grande"><div class="doc-et">El estilo que elegí</div><div class="doc-meta-t">${esc(est.estiloElegido || "")}${est.estiloMezcla ? " + " + esc(est.estiloMezcla) : ""}</div>
+          ${e ? `<div class="doc-sub">${esc(e.sub)} · Referente: ${esc(e.referente)}</div>` : ""}</div>
+        ${e ? `<div class="doc-meta"><b>Tesis:</b> ${esc(e.tesis)}<br><b>Cómo se ve:</b> ${esc(e.comoSeVe)}<br><b>Costo:</b> ${esc(e.costo)}<br><i>${esc(e.dato)}</i></div>` : ""}
+        ${m ? `<div class="doc-meta"><b>Lo mezclo con ${esc(m.nombre)}</b> (${esc(m.sub)}): ${esc(m.tesis)} · ${esc(m.costo)}</div>` : ""}
+        <h4>Por qué lo elegí</h4>
         <div class="doc-meta">${est.criteriosCitados ? `Criterios: <b>${esc(est.criteriosCitados)}</b><br>` : ""}“${esc(est.porque || "")}”</div>
-        ${resp ? `<h4>Mi autodiagnóstico</h4><table><tr><th>Criterio</th><th>Mi respuesta</th></tr>${resp}</table>` : ""}
+        ${resp ? `<h4>Mi diagnóstico${est.estiloSugerido ? ` · apuntó a: ${esc(est.estiloSugerido)}` : ""}</h4><table><tr><th>Criterio</th><th>Mi respuesta</th></tr>${resp}</table>` : ""}
+        <h4>Los 4 estilos</h4>
+        <table class="doc-estilos"><tr><th>Estilo</th><th>Referente</th><th>Cómo se ve</th><th>Costo</th></tr>${filasEstilos}</table>
+        <h4>Lo que pagas por cada estilo (por 1.000 USD al año)</h4>
+        ${tablaCostosHTML("")}
         <div class="doc-nota-final">Ningún estilo es malo por cobrar más; ahora sabes cuánto pagas y por qué.</div>
         <div class="doc-pie"><span>Feminario · feminario.co</span><span>3 / 3</span></div>
       </section>`;
@@ -2685,7 +2736,7 @@ let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:nu
 /* Lo que sabemos de la persona (viene del Sheet o se va llenando en esta sesión) */
 let panelDatos = { balance:null, rango_s1:null, vehiculos_s2:[], estilo_s3:null };
 let vehiculoEditando = null;
-function todoCompleto(){ return !!(panelDatos.balance && panelDatos.rango_s1 && (panelDatos.vehiculos_s2||[]).length); }
+function todoCompleto(){ return !!(panelDatos.balance && panelDatos.rango_s1 && (panelDatos.vehiculos_s2||[]).length && panelDatos.estilo_s3); }
 function panelVacio(){ return { balance:null, rango_s1:null, vehiculos_s2:[], estilo_s3:null }; }
 function nuevoId(){ return "v" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function fmtFecha(f){ const d = new Date(f); return (!f || isNaN(d)) ? "" : d.toLocaleDateString("es-CO", { day:"numeric", month:"long" }); }
@@ -2989,27 +3040,28 @@ const FECHA_SESION3_LABEL = "29 de octubre de 2026";
 
 /* ============================================================
    LOS 4 ESTILOS (arquetipos de estrategia de inversión)
+   Cada uno con su ilustración de Feminario (assets/ilus-*.png)
    ============================================================ */
 const ESTILOS_S3 = [
-  { clave:"rio", nombre:"La que sigue el río", sub:"Pasiva e indexada", color:"var(--agua)",
+  { clave:"rio", nombre:"La que sigue el río", sub:"Pasiva e indexada", img:"assets/ilus-arbol.png",
     referente:"Muriel Siebert, primera mujer con puesto en la Bolsa de Nueva York (1967).",
     tesis:"En vez de buscar la aguja en el pajar, compra todo el pajar.",
     comoSeVe:"~80-90% tronco amplio, 10-20% raíces.",
     costo:"0,03%-0,06% al año",
     dato:"Dato curioso: Buffett deja 90/10 (S&P 500 / bonos) para la herencia de su esposa." },
-  { clave:"tesis", nombre:"La que arma su propia tesis", sub:"Activa y concentrada", color:"var(--ramas)",
+  { clave:"tesis", nombre:"La que arma su propia tesis", sub:"Activa y concentrada", img:"assets/ilus-diana.png",
     referente:"Cathie Wood (innovación) y Geraldine Weiss (dividendos, 25+ años sin fallar).",
     tesis:"Cree que puede identificar ganadores antes que el mercado.",
     comoSeVe:"Alta concentración: las 10 posiciones más grandes pueden pesar más de la mitad del fondo.",
     costo:"0,35%-0,75% al año",
     dato:"Dato honesto: no siempre le gana al mercado amplio, y hay caídas de más de la mitad." },
-  { clave:"nucleo", nombre:"La que mezcla con intención", sub:"Núcleo y satélite", color:"var(--tronco)",
+  { clave:"nucleo", nombre:"La que mezcla con intención", sub:"Núcleo y satélite", img:"assets/ilus-rompecabezas.png",
     referente:"Mellody Hobson, de pasante a co-CEO de Ariel Investments.",
     tesis:"Empresas pequeñas infravaloradas, con paciencia; su mascota es una tortuga.",
     comoSeVe:"~70-80% núcleo amplio, 10-20% satélite puntual.",
     costo:"0,07%-0,25% al año en el satélite",
     dato:"“El arroz y la proteína son tu núcleo, el ají es el satélite.”" },
-  { clave:"piloto", nombre:"La del piloto automático", sub:"Todo clima", color:"var(--raices)",
+  { clave:"piloto", nombre:"La del piloto automático", sub:"Todo clima", img:"assets/ilus-casa.png",
     referente:"Ray Dalio, Bridgewater, estrategia All Weather.",
     tesis:"Nadie sabe qué clima económico viene; arma algo que aguante cualquiera.",
     comoSeVe:"Versión clásica: ~30% acciones, 40% bonos largo plazo, 15% bonos corto/mediano plazo, 7,5% oro, 7,5% materias primas.",
@@ -3026,8 +3078,12 @@ const COSTOS_S3 = [
   ["Tesis de crecimiento (Wood)", "0,75%", "7,50 USD"],
   ["Todo clima (Dalio)", "0,85% o más", "8,50 USD o más"]
 ];
+function tablaCostosHTML(clase){
+  return `<table class="${clase||""}"><tr><th style="text-align:left;">Estilo</th><th>Comisión anual</th><th>Costo en 1.000 USD</th></tr>
+    ${COSTOS_S3.map(f => `<tr><td class="horiz">${f[0]}</td><td>${f[1]}</td><td>${f[2]}</td></tr>`).join("")}</table>`;
+}
 
-/* Los 4 criterios, también usados como preguntas del autodiagnóstico.
+/* Los 4 criterios, también usados como preguntas del diagnóstico.
    Cada opción suma un punto a los estilos hacia los que apunta. */
 const CRITERIOS_S3 = [
   { clave:"tiempo", nombre:"Tiempo real",
@@ -3064,6 +3120,67 @@ const CRITERIOS_S3 = [
 
 let sesionE = { respuestas:{}, sugeridos:[], estilo:null, mezcla:null, criterios:[], porque:"" };
 
+/* Hacia qué estilo(s) apuntan las respuestas (los de más puntos) */
+function sugeridosDe(respuestas){
+  const puntos = {};
+  ESTILOS_S3.forEach(e => puntos[e.clave] = 0);
+  CRITERIOS_S3.forEach(c => { const o = c.opciones[respuestas[c.clave]]; if(o) o.apunta.forEach(k => puntos[k]++); });
+  const max = Math.max(...Object.values(puntos));
+  return max > 0 ? ESTILOS_S3.filter(e => puntos[e.clave] === max).map(e => e.clave) : [];
+}
+
+/* ---- Confeti con los colores y formas de Feminario ---- */
+const FORMAS_CONFETI = ["assets/forma-estrella.png", "assets/forma-sol.png", "assets/forma-estrella-morada.png", "assets/forma-destello.png", "assets/forma-estrella-naranja.png"];
+const COLORES_CONFETI = ["#7E84AE", "#C2CBFF", "#CEA2DD", "#DFF3AF", "#F59356", "#F7C175", "#F9E1FF"];
+function lanzarConfeti(){
+  try{ if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
+  const cv = document.createElement("canvas");
+  cv.className = "confeti";
+  document.body.appendChild(cv);
+  const ctx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+  const imgs = FORMAS_CONFETI.map(src => { const im = new Image(); im.src = src; return im; });
+  const piezas = Array.from({ length: 150 }, (_, i) => ({
+    x: W / 2 + (Math.random() - 0.5) * 120, y: H * 0.35,
+    vx: (Math.random() - 0.5) * 16, vy: -Math.random() * 15 - 5,
+    r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3,
+    s: i % 5 === 0 ? 22 + Math.random() * 14 : 7 + Math.random() * 7,
+    img: i % 5 === 0 ? imgs[i % imgs.length] : null,
+    c: COLORES_CONFETI[i % COLORES_CONFETI.length], forma: i % 3
+  }));
+  const inicio = performance.now();
+  (function cuadro(t){
+    const dt = t - inicio;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = dt > 2600 ? Math.max(0, 1 - (dt - 2600) / 900) : 1;
+    piezas.forEach(p => {
+      p.vy += 0.38; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      if(p.img && p.img.complete && p.img.naturalWidth){ ctx.drawImage(p.img, -p.s / 2, -p.s / 2, p.s, p.s); }
+      else{
+        ctx.fillStyle = p.c;
+        if(p.forma === 0){ ctx.beginPath(); ctx.arc(0, 0, p.s / 2, 0, Math.PI * 2); ctx.fill(); }
+        else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      }
+      ctx.restore();
+    });
+    if(dt < 3500) requestAnimationFrame(cuadro); else cv.remove();
+  })(inicio);
+}
+
+/* ---- Recorrido con las formas de Feminario (en vez de puntos) ---- */
+function rutaHTML(pasos, actual){
+  const formas = ["assets/forma-destello.png", "assets/forma-estrella.png", "assets/forma-estrella-morada.png", "assets/forma-sol.png"];
+  return `<div class="ruta">${pasos.map((p, i) => {
+    const estado = p.hecho ? "hecho" : (i === actual ? "actual" : "");
+    return `<div class="ruta-paso ${estado}"><img src="${formas[i % formas.length]}" alt="">${esc(p.t)}${p.hecho ? " ✓" : ""}</div>`;
+  }).join("")}</div>`;
+}
+function rutaS3(paso){
+  return rutaHTML(["Diagnóstico", "Estilos", "Mi elección", "Listo"].map((t, i) => ({ t, hecho: i < paso })), paso);
+}
+
 function headerS3(){
   return `<div class="brand"><img src="data:image/png;base64,${ICON_B64}" alt="Feminario"></div>
   <div class="eyebrow">Sesión 3 · Tu Portafolio, Tu Estrategia</div>
@@ -3073,7 +3190,7 @@ function idealLineaS3(r){
   return `${n0(r.rango_rentaVariable_pct)}% renta variable · ${n0(r.rango_rentaFija_pct)}% renta fija · ${n0(r.rango_liquidez_pct)}% liquidez · ${n0(r.injerto_pct)}% injerto`;
 }
 
-/* Entrada a la sesión 3 (desde el panel o desde la confirmación de la sesión 2).
+/* Entrada a la sesión 3 (desde el panel o desde la confirmación de la sesión 2): arranca en el diagnóstico.
    Si ya tenía un estilo guardado, lo precarga para editarlo. */
 function empezarSesion3(){
   const e = panelDatos.estilo_s3;
@@ -3089,36 +3206,11 @@ function empezarSesion3(){
       if(i >= 0) sesionE.respuestas[c.clave] = i;
     });
   }
-  pantallaResumenS2();
+  pantallaAutodiagnostico();
 }
 
 /* ============================================================
-   PANTALLA 1 — TU ESTRATEGIA HASTA HOY
-   ============================================================ */
-function pantallaResumenS2(){
-  const r = panelDatos.rango_s1 || sesionV.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [];
-  const nombre = (sesionV.nombre || r.nombre || "").split(" ")[0] || "";
-  document.getElementById("app").innerHTML = `
-    ${headerS3()}
-    ${progreso(1,5,"Paso 1 de 5 · Tu Estrategia hasta hoy")}
-    <div class="card">
-      <h2>Hola${nombre ? ", " + esc(nombre) : ""} 👋</h2>
-      <p class="lead">Tu Estrategia de Inversión hasta hoy:</p>
-      <div class="resumen-row"><span class="k">Rango objetivo (Sesión 1)</span><span class="v">${idealLineaS3(r)}</span></div>
-      ${vs.map(v => `<div class="resumen-row"><span class="k">Vehículo (Sesión 2) · ${esc(v.parteJardin||"")}</span><span class="v">${esc(v.vehiculoElegido||"")}</span></div>`).join("")}
-      <div class="microcopy">Hoy no cambiamos el vehículo. Hoy decidimos con qué cabeza lo vas a manejar.</div>
-      <div class="final-hero" style="margin-top:6px;">
-        <h2 style="margin:0;">¿Subes cuando sube el mercado y vendes cuando cae, o sigues un plan sin importar el ruido?</h2>
-      </div>
-      <button class="btn" onclick="pantallaAutodiagnostico()">Hacer mi autodiagnóstico</button>
-      <button class="link-volver" onclick="pantallaPanel()">← Volver a mi panel</button>
-    </div>
-  `;
-  window.scrollTo(0, 0);
-}
-
-/* ============================================================
-   PANTALLA 2 — AUTODIAGNÓSTICO (4 criterios)
+   PANTALLA 1 — DIAGNÓSTICO (4 criterios)
    ============================================================ */
 function pantallaAutodiagnostico(){
   const bloques = CRITERIOS_S3.map(c => `
@@ -3130,13 +3222,13 @@ function pantallaAutodiagnostico(){
   `).join("");
   document.getElementById("app").innerHTML = `
     ${headerS3()}
-    ${progreso(2,5,"Paso 2 de 5 · Antes de elegir estilo")}
+    ${rutaS3(0)}
     <div class="card">
       <h2>¿Qué estilo eres hoy?</h2>
-      <p class="lead">4 preguntas, sin respuesta mala. Responde por cómo actúas hoy, no por cómo te gustaría actuar.</p>
+      <p class="lead">¿Subes cuando sube el mercado y vendes cuando cae, o sigues un plan sin importar el ruido? Responde por cómo actúas hoy — no hay respuesta mala.</p>
       ${bloques}
-      <button class="btn" onclick="verEstilosS3()">Ver hacia qué estilo apunto</button>
-      <button class="link-volver" onclick="pantallaResumenS2()">Volver</button>
+      <button class="btn" onclick="verEstilosS3()">Ver mi diagnóstico</button>
+      <button class="link-volver" onclick="pantallaPanel()">← Volver a mi panel</button>
     </div>
   `;
   window.scrollTo(0, 0);
@@ -3149,26 +3241,19 @@ function elegirRespuestaS3(clave, i, el){
 function verEstilosS3(){
   const faltan = CRITERIOS_S3.filter(c => sesionE.respuestas[c.clave] === undefined);
   if(faltan.length){ toast("Responde las 4 preguntas 💛"); return; }
-  const puntos = {};
-  ESTILOS_S3.forEach(e => puntos[e.clave] = 0);
-  CRITERIOS_S3.forEach(c => c.opciones[sesionE.respuestas[c.clave]].apunta.forEach(k => puntos[k]++));
-  const max = Math.max(...Object.values(puntos));
-  sesionE.sugeridos = ESTILOS_S3.filter(e => puntos[e.clave] === max).map(e => e.clave);
-  pantallaEstilosS3();
+  sesionE.sugeridos = sugeridosDe(sesionE.respuestas);
+  pantallaEstilosS3(true);
 }
 
 /* ============================================================
-   PANTALLA 3 — LOS 4 ESTILOS Y LO QUE CUESTA CADA UNO
+   PANTALLA 2 — MI DIAGNÓSTICO + LOS 4 ESTILOS Y LO QUE CUESTA CADA UNO
    ============================================================ */
-function pantallaEstilosS3(){
-  const sugeridosTxt = sesionE.sugeridos.map(k => filaEstilo(k).nombre).join(" o ");
-  const tarjetas = ESTILOS_S3.map(e => {
-    const sug = sesionE.sugeridos.includes(e.clave);
-    return `
-    <div class="vehiculo-card" style="${sug ? 'border:2px solid var(--morado);' : ''}">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-        <span style="width:14px; height:14px; border-radius:50%; background:${e.color}; flex-shrink:0;"></span>
-        <div><div style="font-weight:800; color:var(--morado-oscuro);">${e.nombre}${sug ? ' · tu autodiagnóstico' : ''}</div><div style="font-size:12px; color:var(--texto-suave);">${e.sub}</div></div>
+function tarjetaEstiloHTML(e, destacado){
+  return `
+    <div class="vehiculo-card estilo-det${destacado ? " destacado" : ""}">
+      <div class="estilo-det-top">
+        <img src="${e.img}" alt="">
+        <div><div class="estilo-det-n">${e.nombre}</div><div class="estilo-det-s">${e.sub}</div></div>
       </div>
       <div class="ejemplo-row"><span class="pais">Referente</span><span class="txt">${e.referente}</span></div>
       <div class="ejemplo-row"><span class="pais">Tesis</span><span class="txt">${e.tesis}</span></div>
@@ -3176,39 +3261,49 @@ function pantallaEstilosS3(){
       <div class="ejemplo-row"><span class="pais">Costo</span><span class="txt">${e.costo}</span></div>
       <div class="revisar">${e.dato}</div>
     </div>`;
+}
+function pantallaEstilosS3(celebrar){
+  const sug = sesionE.sugeridos.map(filaEstilo);
+  const razones = CRITERIOS_S3.map(c => {
+    const o = c.opciones[sesionE.respuestas[c.clave]];
+    const apunta = o && o.apunta.some(k => sesionE.sugeridos.includes(k));
+    return o ? `<div class="diag-razon${apunta ? "" : " suave"}"><b>${c.nombre}:</b> ${esc(o.txt)}</div>` : "";
   }).join("");
-  const filasCosto = COSTOS_S3.map(f => `<tr><td class="horiz">${f[0]}</td><td>${f[1]}</td><td>${f[2]}</td></tr>`).join("");
+  const otros = ESTILOS_S3.filter(e => !sesionE.sugeridos.includes(e.clave));
   document.getElementById("app").innerHTML = `
     ${headerS3()}
-    ${progreso(3,5,"Paso 3 de 5 · Los 4 estilos")}
+    ${rutaS3(1)}
     <div class="card">
-      <h2>Tus respuestas apuntan a: ${sugeridosTxt}</h2>
-      <p class="lead">Es una pista, no un veredicto. Compárala con los 4 estilos — puedes elegir otro, o una mezcla.</p>
-      ${tarjetas}
-      <h3>Lo que pagas por cada estilo (por 1.000 USD al año)</h3>
-      <div class="matriz-wrap">
-        <table class="matriz">
-          <tr><th style="text-align:left;">Estilo</th><th>Comisión anual</th><th>Costo en 1.000 USD</th></tr>
-          ${filasCosto}
-        </table>
+      <div class="diag-hero">
+        <div class="diag-ilus">${sug.map(e => `<img src="${e.img}" alt="">`).join("")}</div>
+        <div class="diag-et">Mi diagnóstico</div>
+        <div class="diag-n">${sug.map(e => esc(e.nombre)).join(" o ")}</div>
+        <div class="diag-s">${sug.map(e => esc(e.sub)).join(" · ")}</div>
+        <div class="diag-razones">${razones}</div>
       </div>
+      ${sug.map(e => tarjetaEstiloHTML(e, true)).join("")}
+      <h3>Compáralo con los otros estilos</h3>
+      ${otros.map(e => tarjetaEstiloHTML(e, false)).join("")}
+      <h3>Lo que pagas por cada estilo (por 1.000 USD al año)</h3>
+      <div class="matriz-wrap">${tablaCostosHTML("matriz")}</div>
       <div class="microcopy">Ningún estilo es malo por cobrar más; ahora sabes cuánto pagas y por qué.</div>
       <button class="btn" onclick="pantallaElegirEstiloS3()">Elegir mi estilo</button>
-      <button class="link-volver" onclick="pantallaAutodiagnostico()">Volver al autodiagnóstico</button>
+      <button class="link-volver" onclick="pantallaAutodiagnostico()">Volver al diagnóstico</button>
     </div>
   `;
   window.scrollTo(0, 0);
+  if(celebrar && sug.length) lanzarConfeti();
 }
 
 /* ============================================================
-   PANTALLA 4 — ELEGIR ESTILO Y POR QUÉ (página 3 de tu Estrategia)
+   PANTALLA 3 — ELEGIR ESTILO Y POR QUÉ
    ============================================================ */
 function pantallaElegirEstiloS3(){
   if(!sesionE.estilo && sesionE.sugeridos.length) sesionE.estilo = sesionE.sugeridos[0];
   const picks = ESTILOS_S3.map(e => `
-    <div class="jardin-pick ${sesionE.estilo===e.clave?'sel':''}" onclick="elegirEstiloS3('${e.clave}', this)">
-      <span class="dot" style="background:${e.color}"></span>
-      <div><div class="nom">${e.nombre}</div><div class="sub">${e.sub}</div></div>
+    <div class="jardin-pick estilo-pick ${sesionE.estilo===e.clave?'sel':''}" onclick="elegirEstiloS3('${e.clave}', this)">
+      <img src="${e.img}" alt="">
+      <div><div class="nom">${e.nombre}</div><div class="sub">${e.sub}${sesionE.sugeridos.includes(e.clave) ? " · tu diagnóstico" : ""}</div></div>
     </div>`).join("");
   const opcionesMezcla = `<option value="">No, solo este estilo</option>` + ESTILOS_S3.map(e =>
     `<option value="${e.clave}" ${sesionE.mezcla===e.clave?'selected':''}>${e.nombre}</option>`).join("");
@@ -3219,19 +3314,18 @@ function pantallaElegirEstiloS3(){
     </div>`).join("");
   document.getElementById("app").innerHTML = `
     ${headerS3()}
-    ${progreso(4,5,"Paso 4 de 5 · Ahora tú")}
+    ${rutaS3(2)}
     <div class="card">
       <h2>Elige el estilo que más te hace sentido hoy</h2>
-      <p class="lead">Página 3 de tu Estrategia de Inversión.</p>
       <div class="opciones">${picks}</div>
       <label>¿Lo mezclas con otro estilo? <span style="font-weight:400; color:var(--texto-suave);">(opcional)</span></label>
-      <select id="in-mezcla" style="width:100%; padding:13px 16px; border-radius:16px; border:1.5px solid rgba(126,132,174,0.28); font-size:15px; background:var(--superficie); color:var(--texto); font-family:inherit;">${opcionesMezcla}</select>
+      <select id="in-mezcla" class="select-s3">${opcionesMezcla}</select>
       <label>¿En qué criterios te basas? (mínimo 2)</label>
       ${checks}
       <label>¿Por qué este estilo?</label>
       <textarea id="in-porque" placeholder="Ej: tengo poco tiempo al mes y si el mercado cae me cuesta no vender, así que prefiero...">${esc(sesionE.porque)}</textarea>
       <button class="btn" onclick="guardarEstiloS3()">Guardar mi estilo</button>
-      <button class="link-volver" onclick="pantallaEstilosS3()">Volver a los 4 estilos</button>
+      <button class="link-volver" onclick="pantallaEstilosS3(false)">Volver a los 4 estilos</button>
     </div>
   `;
   window.scrollTo(0, 0);
@@ -3272,31 +3366,34 @@ function guardarEstiloS3(){
 }
 
 /* ============================================================
-   PANTALLA 5 — TU ESTRATEGIA, COMPLETA
+   PANTALLA 4 — TU ESTRATEGIA, COMPLETA (con confeti)
    ============================================================ */
 function pantallaConfirmacionS3(){
-  const e = panelDatos.estilo_s3;
-  const r = panelDatos.rango_s1 || sesionV.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [];
+  const e = panelDatos.estilo_s3, est = estiloPorNombre(e.estiloElegido);
+  const b = panelDatos.balance || {}, r = panelDatos.rango_s1 || sesionV.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [];
+  const meta = r.metaPrincipal || b.metaPrincipal || "";
+  const cerc = cercaniaMeta(panelDatos.balance, panelDatos.rango_s1, vs);
   document.getElementById("app").innerHTML = `
     ${headerS3()}
-    ${progreso(5,5,"Paso 5 de 5 · Listo")}
+    ${rutaS3(4)}
     <div class="card">
-      <div class="final-hero">
-        <div class="rotulo">Guardado</div>
-        <h2 style="margin:8px 0 2px;">Tu Estrategia de Inversión, completa</h2>
-        <div class="pagina">Las 3 páginas listas</div>
+      <div class="diag-hero celebra">
+        ${est ? `<div class="diag-ilus"><img src="${est.img}" alt=""></div>` : ""}
+        <div class="diag-n">¡Estás más cerca de alcanzar tu meta!</div>
+        ${meta ? `<div class="diag-s">🎯 ${esc(meta)}${(cerc !== null && cerc !== undefined && vs.length) ? ` · ya vas <b>${cerc}% más cerca</b> de tu yo ideal` : ""}</div>` : ""}
+        <div class="diag-razones centro">Ya sabes qué tener, con qué vehículo y con qué cabeza manejarlo.</div>
       </div>
-      <div class="resumen-row"><span class="k">1 · Rango objetivo</span><span class="v">${idealLineaS3(r)}</span></div>
-      <div class="resumen-row"><span class="k">2 · Vehículo${vs.length > 1 ? "s" : ""} elegido${vs.length > 1 ? "s" : ""}</span><span class="v">${esc(vs.map(v => v.vehiculoElegido).join(" · ") || "—")}</span></div>
-      <div class="resumen-row"><span class="k">3 · Estilo de decisión</span><span class="v">${esc(e.estiloElegido)}${e.estiloMezcla ? " + " + esc(e.estiloMezcla) : ""}</span></div>
+      <div class="resumen-row"><span class="k">Rango objetivo</span><span class="v">${idealLineaS3(r)}</span></div>
+      <div class="resumen-row"><span class="k">Vehículo${vs.length > 1 ? "s" : ""}</span><span class="v">${esc(vs.map(v => v.vehiculoElegido).join(" · ") || "—")}</span></div>
+      <div class="resumen-row"><span class="k">Estilo de decisión</span><span class="v">${esc(e.estiloElegido)}${e.estiloMezcla ? " + " + esc(e.estiloMezcla) : ""}</span></div>
       <div class="tip" style="margin-top:12px;">💬 ${esc(e.porque)}</div>
-      <div class="microcopy">Hoy conociste el estilo de las inversionistas más seguidas del mundo — y elegiste el tuyo. Próxima sesión: cómo revisar sin volverte loca — cuándo rebalancear tu portafolio y cuándo simplemente no tocar nada.</div>
-      ${todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver / descargar mi hoja de estrategia (PDF)</button>` : ""}
+      <div class="microcopy">Próxima sesión: cómo revisar sin volverte loca — cuándo rebalancear tu portafolio y cuándo simplemente no tocar nada.</div>
+      ${todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver y descargar mi Estrategia completa (PDF)</button>` : ""}
       <button class="btn secundario" onclick="pantallaPanel()">Ver mi panel</button>
-      <div class="footer-nota">Explorar más recursos de Feminario: <a href="${LINK_EXPLORAR}" target="_blank" rel="noopener" style="color:var(--morado);">${LINK_EXPLORAR}</a></div>
     </div>
   `;
   window.scrollTo(0, 0);
+  lanzarConfeti();
 }
 
 /* ============================================================
@@ -3433,8 +3530,7 @@ function pantallaPanel(){
   /* Avance */
   const est = panelDatos.estilo_s3;
   const pasos = [!!b, !!r, vs.length > 0, !!est], hechos = pasos.filter(Boolean).length;
-  const avance = `<div class="barra-pasos"><div style="width:${hechos / 4 * 100}%"></div></div>
-    <div class="pasos-txt">${hechos} de 4 pasos · Balance ${pasos[0] ? "✓" : "○"} · Rango ${pasos[1] ? "✓" : "○"} · Vehículos ${pasos[2] ? "✓" : "○"} · Estilo ${pasos[3] ? "✓" : "○"}</div>`;
+  const avance = rutaHTML(["Balance", "Rango", "Vehículos", "Estilo"].map((t, i) => ({ t, hecho: pasos[i] })), pasos.indexOf(false));
 
   /* Meta grande e información rápida */
   const conFecha = vs.map(v => ({ v, d: fechaDeVehiculo(v) })).filter(x => x.d && diasHasta(x.d) >= 0).sort((a, c) => a.d - c.d);
@@ -3444,11 +3540,14 @@ function pantallaPanel(){
   const resta = plazoMeta(horiz, (b && b.fecha) || (r && r.fecha));
   const palabras = (b && b.metaPalabras) || (r && r.metaPalabras) || "";
   const cardMeta = meta ? `<div class="meta-card">
+      <div class="meta-top"><div>
       <div class="meta-et">🎯 Mi meta grande</div>
       <div class="meta-t">${esc(meta)}</div>
       ${palabras ? `<div class="meta-p">“${esc(palabras)}”</div>` : ""}
       ${(horiz || resta) ? `<div class="meta-s">${horiz ? "Plazo: " + esc(horiz.toLowerCase()) : ""}${resta ? " · quedan hasta " + resta : ""}</div>` : ""}
+      </div><img class="meta-ilus" src="assets/ilus-cofre.png" alt=""></div>
       ${cercaniaMetaHTML(b, r, vs, meta)}
+      <!--HITO-->
     </div>` : "";
   const lineas = [];
   if(b && b.mesesColchon !== undefined && b.mesesColchon !== "") lineas.push(`🛟 Tu colchón de emergencia cubre <b>${Number(b.mesesColchon).toFixed(1).replace(".0", "")} meses</b> de tus gastos.`);
@@ -3458,18 +3557,38 @@ function pantallaPanel(){
   /* Primer paso */
   const conPaso = vs.filter(v => v.primerPaso);
   const pasoV = (proximo && proximo.v.primerPaso) ? proximo : (conPaso[0] ? { v: conPaso[0], d: fechaDeVehiculo(conPaso[0]) } : null);
-  const cardHito = pasoV ? `
-    <div class="hito">
-      <div class="hito-linea"></div>
-      <div class="hito-card">
+  const hitoInterno = pasoV ? `
+      <div class="meta-hito">
         <div class="hito-ico">🚩</div>
         <div>
-          <div class="hito-et">Mi hito de esta semana</div>
+          <div class="hito-et">Mi próximo paso hacia la meta</div>
           <div class="hito-t">${esc(pasoV.v.primerPaso)}</div>
           ${pasoV.d ? `<div class="hito-f">📅 ${esc(fechaEnTexto(pasoV.d))} · ${textoDias(diasHasta(pasoV.d))}</div>` : (pasoV.v.cuandoAportar ? `<div class="hito-f">📅 ${esc(pasoV.v.cuandoAportar)}</div>` : "")}
         </div>
+      </div>` : "";
+  const bloqueMeta = meta ? cardMeta.replace("<!--HITO-->", hitoInterno) : (hitoInterno ? `<div class="meta-card">${hitoInterno}</div>` : "");
+
+  /* Sesión 3: el diagnóstico va arriba (pendiente = invitación; hecho = su estilo) */
+  const estI = est ? estiloPorNombre(est.estiloElegido) : null;
+  const cardEstiloTop = est ? `
+    <div class="estilo-card">
+      ${estI ? `<img src="${estI.img}" alt="">` : ""}
+      <div style="flex:1; min-width:0;">
+        <div class="meta-et">Mi estilo de decisión</div>
+        <div class="estilo-n">${esc(est.estiloElegido || "")}${est.estiloMezcla ? " + " + esc(est.estiloMezcla) : ""}</div>
+        ${est.porque ? `<div class="detalle-v">💬 ${esc(est.porque)}</div>` : ""}
       </div>
-    </div>` : "";
+      <button class="btn-mini" onclick="empezarSesion3()">Editar</button>
+    </div>` : (vs.length ? `
+    <div class="estilo-card invita">
+      <img src="assets/ilus-diana.png" alt="">
+      <div style="flex:1; min-width:0;">
+        <div class="meta-et">Sesión 3 · Nuevo</div>
+        <div class="estilo-n">Descubre tu estilo de decisión</div>
+        <div class="detalle-v">4 preguntas y ves tu diagnóstico.</div>
+      </div>
+    </div>
+    <button class="btn" style="margin-top:0; margin-bottom:16px;" onclick="empezarSesion3()">Ver mi diagnóstico &rarr;</button>` : "");
   const kpiLista = [];
   if(b && b.patrimonioNeto_cop !== undefined && b.patrimonioNeto_cop !== "") kpiLista.push([cop(b.patrimonioNeto_cop), "Patrimonio neto", "Lo que tengo menos lo que debo"]);
   if(b && b.totalPasivos_cop !== undefined && b.totalPasivos_cop !== "") kpiLista.push([cop(b.totalPasivos_cop), "Lo que debo", "Suma de mis deudas"]);
@@ -3519,13 +3638,7 @@ function pantallaPanel(){
       <div class="panel-acciones"><button class="btn-mini" onclick="elegirOtroVehiculo()">+ Agregar otro vehículo</button></div>
     </div>` : "";
 
-  const cardEstilo = est ? `
-    <div class="vehiculo-card compacta">
-      <div class="comp-fila"><div><h3>Mi estilo de decisión ✓</h3><div class="detalle-v">${esc(est.estiloElegido || "")}${est.estiloMezcla ? " + " + esc(est.estiloMezcla) : ""}</div>${est.porque ? `<div class="detalle-v">💬 ${esc(est.porque)}</div>` : ""}</div>
-      <button class="btn-mini" onclick="empezarSesion3()">Editar</button></div>
-    </div>` : "";
-
-  const botonEntregable = todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver y descargar mi hoja de estrategia (PDF)</button>` : "";
+  const botonEntregable = todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver y descargar mi Estrategia completa (PDF)</button>` : "";
 
   let siguiente = "";
   if(b && !r){
@@ -3534,9 +3647,6 @@ function pantallaPanel(){
   } else if(r && !vs.length){
     siguiente = `<div class="paso-sig">Siguiente paso: elegir tu vehículo.</div>
       <button class="btn" onclick="elegirOtroVehiculo()">Continuar a elegir mi vehículo &rarr;</button>`;
-  } else if(vs.length && !est){
-    siguiente = `<div class="paso-sig">Siguiente paso: tu estilo de decisión (Sesión 3).</div>
-      <button class="btn" onclick="empezarSesion3()">Continuar a mi estilo de decisión &rarr;</button>`;
   } else if(!b && !r && !vs.length){
     siguiente = `<button class="btn" onclick="pantallaBienvenidaConEmail(emailOrquestador)">Empezar con mi Balance de Portafolio</button>`;
   }
@@ -3546,13 +3656,12 @@ function pantallaPanel(){
     <div class="card">
       <p class="lead">Hola${nombre ? ", " + esc(nombre) : ""} 👋 Así va tu Estrategia de Inversión.</p>
       ${avance}
-      ${cardMeta}
-      ${cardHito}
+      ${bloqueMeta}
+      ${cardEstiloTop}
       ${kpiHTML}
       ${cardPatrimonio}
       ${cardRadiografia}
       ${cardVehiculos}
-      ${cardEstilo}
       ${cardRango}${cardBalance}
       ${botonEntregable}
       ${siguiente}
