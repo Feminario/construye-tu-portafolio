@@ -726,6 +726,33 @@
   }
   :root[data-theme="dark"] .meta-hito, :root[data-theme="dark"] .diag-razon{ background:var(--superficie); }
   :root[data-theme="dark"] .estilo-card, :root[data-theme="dark"] .diag-hero{ background:linear-gradient(135deg, rgba(194,203,255,0.14), rgba(206,162,221,0.12)); }
+
+  /* ---- Sesión 4: rebalanceo, semáforo y carta ---- */
+  .btn-mini.activo{ background:var(--morado); color:#fff; }
+  .panel-acciones{ flex-wrap:wrap; }
+  .reb-fila{ display:grid; grid-template-columns:1fr 84px 1fr; gap:8px; align-items:end; margin:8px 0; }
+  .reb-k{ font-weight:800; color:var(--morado-oscuro); font-size:13.5px; padding-bottom:12px; min-width:0; }
+  .reb-c{ display:block; margin:0; font-weight:600; font-size:11px; color:var(--texto-suave); min-width:0; }
+  .reb-c span{ display:block; margin-bottom:3px; }
+  .reb-c input{ width:100%; min-width:0; padding:10px 12px; border-radius:12px; border:1.5px solid rgba(126,132,174,0.28); font-size:14px; background:var(--superficie); color:var(--texto); font-family:inherit; }
+  .reb-c input:focus{ outline:none; border-color:var(--morado); box-shadow:0 0 0 3px rgba(126,132,174,0.18); }
+  @media (max-width:380px){ .reb-fila{ grid-template-columns:1fr 1fr; } .reb-k{ grid-column:1 / -1; padding-bottom:0; } }
+  .sem-leyenda{ display:grid; gap:4px; font-size:12.5px; color:var(--texto-suave); margin:6px 0 12px; }
+  .sem-leyenda i, .sem-op i{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:7px; vertical-align:-1px; flex-shrink:0; }
+  .sem-fila{ background:var(--superficie); border-radius:16px; padding:12px 14px; margin:8px 0; }
+  .sem-t{ font-size:14px; font-weight:600; color:var(--morado-oscuro); margin-bottom:8px; }
+  .sem-ops{ display:flex; gap:6px; flex-wrap:wrap; }
+  .sem-op{ display:inline-flex; align-items:center; padding:8px 12px; border-radius:999px; border:1.5px solid rgba(126,132,174,0.3); background:transparent; color:var(--morado-oscuro); font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; }
+  .sem-op.sel{ border-color:var(--morado); background:linear-gradient(135deg, rgba(194,203,255,0.5), rgba(206,162,221,0.35)); }
+  .sem-op.correcta{ border-color:#3E8F63; box-shadow:0 0 0 2px rgba(62,143,99,0.25); }
+  .sem-op:disabled{ cursor:default; }
+  .sem-op:focus-visible, .btn-mini:focus-visible{ outline:3px solid var(--morado); outline-offset:2px; }
+  .sem-res{ font-size:12.5px; margin-top:8px; color:var(--texto-suave); }
+  .sem-res.ok{ color:#3E8F63; font-weight:600; }
+  .sem-res.no{ color:var(--alerta); font-weight:600; }
+  .carta-prev{ background:rgba(223,243,175,0.5); border-radius:16px; padding:14px 16px; font-size:14px; font-style:italic; color:var(--morado-oscuro); line-height:1.6; margin:6px 0 4px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  :root[data-theme="dark"] .carta-prev{ background:rgba(223,243,175,0.12); }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .carta-prev{ background:rgba(223,243,175,0.12); } }
 </style>
 <div id="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div id="app"></div>
@@ -2600,7 +2627,7 @@ async function descargarPDF(){
 }
 
 /* Página 3 del PDF: todo lo de la Sesión 3 (diagnóstico, estilo elegido, por qué, los 4 estilos y sus costos) */
-function paginaEstiloDocHTML(est){
+function paginaEstiloDocHTML(est, total){
   const e = estiloPorNombre(est.estiloElegido), m = estiloPorNombre(est.estiloMezcla);
   const resp = CRITERIOS_S3.filter(c => est["resp_" + c.clave]).map(c => `<tr><td><b>${esc(c.nombre)}</b></td><td>${esc(est["resp_" + c.clave])}</td></tr>`).join("");
   const filasEstilos = ESTILOS_S3.map(x => `<tr class="${e && x.clave === e.clave ? "fila-mia" : ""}"><td><b>${esc(x.nombre)}</b><br><span class="doc-sub">${esc(x.sub)}</span></td><td>${esc(x.referente)}</td><td>${esc(x.comoSeVe)}</td><td>${esc(x.costo)}</td></tr>`).join("");
@@ -2623,7 +2650,7 @@ function paginaEstiloDocHTML(est){
         <h4>Lo que pagas por cada estilo (por 1.000 USD al año)</h4>
         ${tablaCostosHTML("")}
         <div class="doc-nota-final">Ningún estilo es malo por cobrar más; ahora sabes cuánto pagas y por qué.</div>
-        <div class="doc-pie"><span>Feminario · feminario.co</span><span>3 / 3</span></div>
+        <div class="doc-pie"><span>Feminario · feminario.co</span><span>3 / ${total || 3}</span></div>
       </section>`;
 }
 
@@ -2650,7 +2677,8 @@ function pantallaEntregable(){
   const hitoD = hitoV ? fechaDeVehiculo(hitoV) : null;
   const cerc = cercaniaMeta(b, r, vs);
   const est = panelDatos.estilo_s3;
-  const totalPags = est ? 3 : 2;
+  const mantDoc = panelDatos.mantenimiento_s4;
+  const totalPags = 2 + (est ? 1 : 0) + (mantDoc ? 1 : 0);
   const filasV2 = vs.map(v => {
     const c = Math.min(4, (v.criterios || "").split(";").filter(x => x.trim()).length);
     return `<tr><td>${esc(v.parteJardin||"")}</td><td><b>${esc(v.vehiculoElegido||"")}</b></td><td>${cop(v.monto_vehiculo_cop)}</td><td>${esc(v.fechaAporte || v.cuandoAportar || "")}</td><td>${c ? `<b>${c}/4</b> · ` : ""}${esc(v.porQueCumple||"")}</td></tr>`;
@@ -2691,7 +2719,8 @@ function pantallaEntregable(){
         <div class="doc-nota-final">Son categorías, no recomendaciones puntuales: confirma tasas, comisiones y condiciones vigentes antes de decidir.</div>
         <div class="doc-pie"><span>Feminario · feminario.co</span><span>2 / ${totalPags}</span></div>
       </section>
-      ${est ? paginaEstiloDocHTML(est) : ""}
+      ${est ? paginaEstiloDocHTML(est, totalPags) : ""}
+      ${mantDoc ? paginaMantDocHTML(mantDoc, est ? 4 : 3, totalPags) : ""}
     </div>
   `;
   window.scrollTo(0, 0);
@@ -2734,10 +2763,10 @@ function enviarABaseDeDatos(payload){
    ============================================================ */
 let sesionV = { email:null, nombre:null, rango_s1:null, brecha:null, vehiculo:null };
 /* Lo que sabemos de la persona (viene del Sheet o se va llenando en esta sesión) */
-let panelDatos = { balance:null, rango_s1:null, vehiculos_s2:[], estilo_s3:null };
+let panelDatos = { balance:null, rango_s1:null, vehiculos_s2:[], estilo_s3:null, mantenimiento_s4:null };
 let vehiculoEditando = null;
 function todoCompleto(){ return !!(panelDatos.balance && panelDatos.rango_s1 && (panelDatos.vehiculos_s2||[]).length && panelDatos.estilo_s3); }
-function panelVacio(){ return { balance:null, rango_s1:null, vehiculos_s2:[], estilo_s3:null }; }
+function panelVacio(){ return { balance:null, rango_s1:null, vehiculos_s2:[], estilo_s3:null, mantenimiento_s4:null }; }
 function nuevoId(){ return "v" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function fmtFecha(f){ const d = new Date(f); return (!f || isNaN(d)) ? "" : d.toLocaleDateString("es-CO", { day:"numeric", month:"long" }); }
 function listaVehiculosHTML(lista){
@@ -3172,7 +3201,7 @@ function lanzarConfeti(){
 /* ---- Recorrido con las formas de Feminario (en vez de puntos) ---- */
 function rutaHTML(pasos, actual){
   const formas = ["assets/forma-destello.png", "assets/forma-estrella.png", "assets/forma-estrella-morada.png", "assets/forma-sol.png"];
-  return `<div class="ruta">${pasos.map((p, i) => {
+  return `<div class="ruta" style="grid-template-columns:repeat(${pasos.length},1fr)">${pasos.map((p, i) => {
     const estado = p.hecho ? "hecho" : (i === actual ? "actual" : "");
     return `<div class="ruta-paso ${estado}"><img src="${formas[i % formas.length]}" alt="">${esc(p.t)}${p.hecho ? " ✓" : ""}</div>`;
   }).join("")}</div>`;
@@ -3397,12 +3426,484 @@ function pantallaConfirmacionS3(){
       <div class="resumen-row"><span class="k">Estilo de decisión</span><span class="v">${esc(e.estiloElegido)}${e.estiloMezcla ? " + " + esc(e.estiloMezcla) : ""}</span></div>
       <div class="tip" style="margin-top:12px;">💬 ${esc(e.porque)}</div>
       <div class="microcopy">Próxima sesión: cómo revisar sin volverte loca — cuándo rebalancear tu portafolio y cuándo simplemente no tocar nada.</div>
-      ${todoCompleto() ? `<button class="btn" onclick="pantallaEntregable()">Ver y descargar mi Estrategia completa (PDF)</button>` : ""}
+      ${!panelDatos.mantenimiento_s4 ? `<button class="btn" onclick="empezarSesion4()">Continuar a la Sesión 4 · Mi disciplina de mantenimiento &rarr;</button>` : ""}
+      ${todoCompleto() ? `<button class="btn${panelDatos.mantenimiento_s4 ? "" : " secundario"}" onclick="pantallaEntregable()">Ver y descargar mi Estrategia completa (PDF)</button>` : ""}
       <button class="btn secundario" onclick="pantallaPanel()">Ver mi panel</button>
     </div>
   `;
   window.scrollTo(0, 0);
   lanzarConfeti();
+}
+
+/* ===================== SESIÓN 4 · MI DISCIPLINA DE MANTENIMIENTO ===================== */
+
+const FECHA_SESION4_LABEL = "11 de noviembre de 2026";
+
+/* Punto de comparación (benchmark) según el estilo elegido en la Sesión 3 */
+const BENCHMARK_S4 = {
+  rio:    { cual:"El S&P 500 o el mercado total de EE. UU.", nota:"Es, literalmente, tu propio punto de comparación: si tu portafolio se mueve igual que el mercado, tu estrategia hace justo lo que se diseñó para hacer." },
+  tesis:  { cual:"El S&P 500 amplio. Si tu tesis es de dividendos, el índice S&P 500 Dividend Aristocrats (el mismo que sigue NOBL).", nota:"La pregunta es si tu apuesta concentrada le ganó de verdad al mercado que evitaste." },
+  nucleo: { cual:"El núcleo, contra el S&P 500 o el mercado total. El satélite, contra un índice de empresas pequeñas infravaloradas.", nota:"Cada parte se compara con su propia vara." },
+  piloto: { cual:"No tiene un punto de comparación único y limpio.", nota:"Se mide por si aguanta cualquier clima, no por si le gana a un índice. Es honesto decirlo así." }
+};
+
+/* Las 3 preguntas que se guardan para siempre (en este orden exacto) */
+const PREGUNTAS_S4 = [
+  { q:"¿Cayó solo mi activo, o cayó todo el mercado?",
+    r:"Si tienes VOO y cae 5%, mira qué hizo el S&P 500 ese mismo día. Si el índice también cayó, tu ETF está haciendo exactamente lo que tiene que hacer." },
+  { q:"¿Por qué cayó?",
+    r:"Si es una noticia de un día, un dato económico o un comentario de un analista, es ruido y se diluye solo. Si cambia los fundamentos de lo que compraste (esto solo aplica a acciones individuales, nunca a un ETF amplio por una sola empresa), ahí sí amerita mirar con cuidado." },
+  { q:"¿Cambió algo en TU vida?",
+    r:"No en el mercado: en la tuya. Si la respuesta es no, no hay decisión que tomar, solo esperar." }
+];
+
+/* Cuándo rebalanceo: dos maneras de decidirlo */
+const METODOS_S4 = [
+  { clave:"cal12",  tipo:"Calendario", txt:"Una vez al año",                       det:"Revisas y ajustas cada 12 meses, sin importar qué tan desviado esté. Simple, predecible, poco tiempo." },
+  { clave:"cal6",   tipo:"Calendario", txt:"Cada seis meses",                      det:"Revisas y ajustas cada 6 meses, sin importar qué tan desviado esté. Simple, predecible, poco tiempo." },
+  { clave:"umb5",   tipo:"Umbral",     txt:"Cuando una parte se desvíe 5 puntos",  det:"Revisas cuando una categoría se aleja 5 puntos de su meta. Más preciso, pero pide más seguimiento." },
+  { clave:"umb10",  tipo:"Umbral",     txt:"Cuando una parte se desvíe 10 puntos", det:"Revisas cuando una categoría se aleja 10 puntos de su meta. Más preciso, pero pide más seguimiento." }
+];
+function metodoS4(clave){ return METODOS_S4.find(m => m.clave === clave); }
+
+/* Semáforo de señales: ¿esto amerita actuar? */
+const SEM_S4 = {
+  verde:    { nombre:"Verde",    sub:"No toques nada",                  color:"#3E8F63" },
+  amarillo: { nombre:"Amarillo", sub:"Revisa, sin actuar todavía",      color:"#F7C175" },
+  rojo:     { nombre:"Rojo",     sub:"Sí amerita ajustar",              color:"#C2483D" }
+};
+const SITUACIONES_S4 = [
+  { t:"El mercado cayó 10% esta semana por una noticia económica", c:"verde", r:"Es ruido de corto plazo." },
+  { t:"Un influencer o un conocido dice que “todo se va a caer”", c:"verde", r:"Nadie sabe eso, ni él." },
+  { t:"Tu portafolio lleva tres meses sin subir", c:"verde", r:"Tres meses no dicen nada sobre un plan de años." },
+  { t:"Te casaste, o ahora piensan en metas conjuntas con tu pareja", c:"amarillo", r:"Revisa si tu meta o tu horizonte cambiaron de verdad." },
+  { t:"Tu portafolio se desvió más de 5 a 10 puntos de tu % objetivo", c:"amarillo", r:"Es señal de REBALANCEAR, no de cambiar de estrategia." },
+  { t:"Te subieron el sueldo y puedes ahorrar bastante más cada mes", c:"amarillo", r:"Vale la pena revisar si quieres acelerar una meta." },
+  { t:"Perdiste tu empleo o tu ingreso cambió fuerte", c:"rojo", r:"Revisa tu reserva de agua y tus aportes nuevos." },
+  { t:"Tu horizonte cambió de golpe (ibas a 10 años, ahora vas a comprar casa en 2)", c:"rojo", r:"Tu perfil de riesgo para esa meta cambió de verdad." },
+  { t:"Descubriste, como en el quiz de la sesión 3, que tu tolerancia real a las caídas es más baja de lo que creías", c:"rojo", r:"Esto sí es información nueva sobre ti, no sobre el mercado." }
+];
+
+/* Ejemplo de la sesión: perfil moderado sobre $10.000.000 COP, un año después */
+const EJEMPLO_REB_S4 = [
+  { k:"Raíces",          obj:25, monto:2000000 },
+  { k:"Reserva de agua", obj:15, monto:1300000 },
+  { k:"Tronco",          obj:40, monto:5000000 },
+  { k:"Ramas",           obj:15, monto:1200000 },
+  { k:"Injerto",         obj:5,  monto:500000 }
+];
+
+function ea4(s){ return esc(s).replace(/"/g, "&quot;"); }
+
+/* Respaldo local por correo: la Sesión 4 se ve en el panel aunque el Sheet todavía no la devuelva */
+function claveLocalS4(email){ return "fem_mant_s4_" + String(email || "").trim().toLowerCase(); }
+function guardarLocalS4(rec){ try{ localStorage.setItem(claveLocalS4(rec.email), JSON.stringify(rec)); }catch(e){} }
+function leerLocalS4(email){ try{ const t = localStorage.getItem(claveLocalS4(email)); return t ? JSON.parse(t) : null; }catch(e){ return null; } }
+
+let sesionM = { editando:false, metodo:null, semaforo:{}, semaforoListo:false, razon:"", horizonte:"", frase:"" };
+let filasReb = [], modoReb = "mio";
+
+function rutaS4(paso){
+  return rutaHTML(["Receta", "Cuándo", "Semáforo", "Carta", "Listo"].map((t, i) => ({ t, hecho: i < paso })), paso);
+}
+function headerS4(){
+  return `<div class="brand"><img src="data:image/png;base64,${ICON_B64}" alt="Feminario"></div>
+  <div class="eyebrow">Sesión 4 · Tu Portafolio, Tu Estrategia</div>
+  <div class="titulo-tool">Mi Disciplina de Mantenimiento</div>`;
+}
+function estiloClaveS4(){
+  const e = panelDatos.estilo_s3, est = e ? estiloPorNombre(e.estiloElegido) : null;
+  return est ? est.clave : null;
+}
+function aciertosSemaforoS4(resp){ return SITUACIONES_S4.filter((s, i) => resp[i] === s.c).length; }
+
+/* Entrada a la sesión 4 (desde el panel o desde la confirmación de la sesión 3).
+   Si ya tenía su disciplina guardada, la precarga y abre el resumen para editar por partes. */
+function empezarSesion4(){
+  const m = panelDatos.mantenimiento_s4;
+  sesionM = { editando:false, metodo:null, semaforo:{}, semaforoListo:false, razon:"", horizonte:"", frase:"" };
+  const est = panelDatos.estilo_s3, r = panelDatos.rango_s1 || {}, b = panelDatos.balance || {};
+  sesionM.razon = (est && est.porque) || "";
+  const h = r.metaHorizonteOriginal || b.metaHorizonte || "";
+  sesionM.horizonte = HORIZONTE_OPTIONS.includes(h) ? h : "";
+  if(m){
+    sesionM.metodo = m.metodoClave || null;
+    String(m.semaforoRespuestas || "").split(",").forEach((c, i) => { if(SEM_S4[c]) sesionM.semaforo[i] = c; });
+    sesionM.semaforoListo = Object.keys(sesionM.semaforo).length === SITUACIONES_S4.length;
+    sesionM.razon = m.cartaRazon || sesionM.razon;
+    sesionM.horizonte = m.cartaHorizonte || sesionM.horizonte;
+    sesionM.frase = m.cartaFrase || "";
+    sesionM.editando = true;
+    pantallaEditarS4();
+    return;
+  }
+  pantallaRecetaS4();
+}
+
+/* ============================================================
+   PANTALLA 1 — MI RECETA Y MIS 3 PREGUNTAS
+   ============================================================ */
+function pantallaRecetaS4(){
+  const r = panelDatos.rango_s1 || sesionV.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [], e = panelDatos.estilo_s3;
+  const clave = estiloClaveS4(), bm = clave ? BENCHMARK_S4[clave] : null, est = clave ? filaEstilo(clave) : null;
+  const filasBm = ESTILOS_S3.map(x => `<tr class="${x.clave === clave ? "fila-activa" : ""}"><td class="horiz">${esc(x.nombre)}</td><td style="text-align:left;">${esc(BENCHMARK_S4[x.clave].cual)}</td></tr>`).join("");
+  document.getElementById("app").innerHTML = `
+    ${headerS4()}
+    ${rutaS4(0)}
+    <div class="card">
+      <h2>Hoy no tocamos nada de eso. Hoy aprendes a sostenerlo.</h2>
+      <p class="lead">Tu Estrategia de Inversión ya tiene tres páginas. La que falta es qué haces cuando el mercado se mueve, sin romper lo que construiste.</p>
+      <div class="resumen-row"><span class="k">Rango objetivo (Sesión 1)</span><span class="v">${idealLineaS3(r)}</span></div>
+      ${vs.map(v => `<div class="resumen-row"><span class="k">Vehículo (Sesión 2) · ${esc(v.parteJardin || "")}</span><span class="v">${esc(v.vehiculoElegido || "")}</span></div>`).join("")}
+      ${e ? `<div class="resumen-row"><span class="k">Estilo de decisión (Sesión 3)</span><span class="v">${esc(e.estiloElegido)}${e.estiloMezcla ? " + " + esc(e.estiloMezcla) : ""}</span></div>` : ""}
+      <div class="microcopy">Tu receta no cambia solo porque el mercado tuvo un buen o mal año. Sigue siendo tu meta hasta que TÚ decidas cambiarla.</div>
+
+      <h3>Tu punto de comparación</h3>
+      ${bm ? `<div class="vehiculo-card estilo-det destacado">
+        <div class="estilo-det-top"><img src="${est.img}" alt=""><div><div class="estilo-det-n">${esc(est.nombre)}</div><div class="estilo-det-s">${esc(est.sub)}</div></div></div>
+        <div class="ejemplo-row"><span class="pais">Te comparas con</span><span class="txt">${esc(bm.cual)}</span></div>
+        <div class="revisar">${esc(bm.nota)}</div>
+      </div>` : ""}
+      <div class="matriz-wrap"><table class="matriz"><tr><th style="text-align:left;">Estilo</th><th style="text-align:left;">Su punto de comparación</th></tr>${filasBm}</table></div>
+
+      <h3>Las 3 preguntas que guardas para siempre</h3>
+      <p class="lead">Cada vez que veas una caída, en este orden exacto.</p>
+      ${PREGUNTAS_S4.map((p, i) => `
+        <div class="tip"><b>${i + 1}. ${esc(p.q)}</b><br>${esc(p.r)}</div>`).join("")}
+      <div class="microcopy">La mayoría de las veces, estas tres preguntas te llevan a la misma conclusión: no hagas nada. Y nunca revises a diario: trimestral como mucho, y solo para contexto, no para actuar.</div>
+
+      <button class="btn" onclick="pantallaRebalanceoS4()">Seguir: cuándo rebalanceo</button>
+      <button class="link-volver" onclick="pantallaPanel()">← Volver a mi panel</button>
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   PANTALLA 2 — REBALANCEO: CALCULADORA Y MI MÉTODO
+   ============================================================ */
+function filasRebDesdePanel(){
+  const r = panelDatos.rango_s1; if(!r) return null;
+  const real = mezclaReal(panelDatos.balance);
+  return [
+    { k:"Renta variable", obj:n0(r.rango_rentaVariable_pct), monto: real ? real.cop.rv : 0 },
+    { k:"Renta fija",     obj:n0(r.rango_rentaFija_pct),     monto: real ? real.cop.rf : 0 },
+    { k:"Liquidez",       obj:n0(r.rango_liquidez_pct),      monto: real ? real.cop.liq : 0 },
+    { k:"Injerto",        obj:n0(r.injerto_pct),             monto: 0 }
+  ];
+}
+function calcRebalanceo(filas){
+  const total = filas.reduce((a, f) => a + n0(f.monto), 0);
+  const sumObj = filas.reduce((a, f) => a + n0(f.obj), 0);
+  return { total, sumObj, filas: filas.map(f => {
+    const act = total > 0 ? n0(f.monto) / total * 100 : 0;
+    const delta = Math.round(total * n0(f.obj) / 100 - n0(f.monto));
+    return { k:f.k, obj:n0(f.obj), act, delta, desv: act - n0(f.obj) };
+  }) };
+}
+function montoTexto(v){ const x = n0(v); return x ? x.toLocaleString("es-CO") : ""; }
+function leerMonto(t){ return Number(String(t || "").replace(/\D/g, "")) || 0; }
+
+function pintarRebalanceoS4(){
+  const el = document.getElementById("reb-res"); if(!el) return;
+  const c = calcRebalanceo(filasReb);
+  if(c.total <= 0){ el.innerHTML = `<div class="microcopy">Escribe cuánto tienes hoy en cada parte para ver qué vender y qué comprar.</div>`; return; }
+  const filas = c.filas.map(f => {
+    const grande = Math.abs(f.desv) >= 5;
+    const acc = f.delta > 0 ? `Comprar ${cop(f.delta)}` : f.delta < 0 ? `Vender ${cop(-f.delta)}` : "En su meta";
+    return `<tr class="${grande ? "fila-activa" : ""}"><td class="horiz">${esc(f.k)}</td><td>${Math.round(f.obj)}%</td><td>${Math.round(f.act)}%</td><td>${acc}</td></tr>`;
+  }).join("");
+  const mayor = c.filas.slice().sort((a, b) => Math.abs(b.desv) - Math.abs(a.desv))[0];
+  const aviso = Math.abs(c.sumObj - 100) > 0.5
+    ? `<div class="alerta-box">Tus porcentajes objetivo suman ${Math.round(c.sumObj)}%. Deben sumar 100%.</div>`
+    : (Math.abs(mayor.desv) >= 5
+        ? `<div class="microcopy">La parte que más se movió es <b>${esc(mayor.k)}</b>: ${Math.abs(Math.round(mayor.desv))} puntos ${mayor.desv > 0 ? "por encima" : "por debajo"} de su meta. Con un umbral de 5 puntos, toca rebalancear.</div>`
+        : `<div class="microcopy">Estás cerca de tu receta: ninguna parte se desvió 5 puntos o más.</div>`);
+  el.innerHTML = `
+    <div class="matriz-wrap"><table class="matriz"><tr><th style="text-align:left;">Parte</th><th>Meta</th><th>Hoy</th><th>Qué hacer</th></tr>${filas}</table></div>
+    ${aviso}
+    <div class="microcopy">Rebalancear no es castigar lo que subió. Es evitar que tu portafolio termine con más riesgo del que elegiste, solo porque una parte tuvo un buen año.</div>`;
+}
+function onRebInput(i, campo, valor){
+  filasReb[i][campo] = campo === "monto" ? leerMonto(valor) : Number(String(valor).replace(",", ".")) || 0;
+  pintarRebalanceoS4();
+}
+function cambiarModoReb(modo){
+  modoReb = modo;
+  filasReb = (modo === "mio" ? filasRebDesdePanel() : null) || EJEMPLO_REB_S4.map(f => ({ ...f }));
+  pantallaRebalanceoS4(true);
+}
+function elegirMetodoS4(clave, el){
+  sesionM.metodo = clave;
+  document.querySelectorAll(".metodo-pick").forEach(p => p.classList.remove("sel"));
+  el.classList.add("sel");
+}
+function pantallaRebalanceoS4(conservar){
+  if(!conservar || !filasReb.length){
+    modoReb = filasRebDesdePanel() ? "mio" : "ejemplo";
+    filasReb = (modoReb === "mio" ? filasRebDesdePanel() : null) || EJEMPLO_REB_S4.map(f => ({ ...f }));
+  }
+  const e = panelDatos.estilo_s3;
+  const tiempo = e ? String(e.resp_tiempo || "") : "";
+  const pista = /Menos de 2/.test(tiempo) ? "Dijiste que le dedicas menos de 2 horas al mes: el calendario te obliga a revisar igual."
+    : /Más de 6/.test(tiempo) ? "Dijiste que le dedicas más de 6 horas al mes: el umbral te deja actuar apenas haga falta."
+    : tiempo ? "Si casi no revisas tu portafolio, el calendario te obliga a hacerlo; si te gusta seguirlo de cerca, el umbral te deja actuar apenas haga falta." : "";
+  const filasIn = filasReb.map((f, i) => `
+    <div class="reb-fila">
+      <div class="reb-k">${esc(f.k)}</div>
+      <label class="reb-c"><span>Meta %</span><input type="text" inputmode="decimal" value="${ea4(f.obj)}" oninput="onRebInput(${i},'obj',this.value)"></label>
+      <label class="reb-c"><span>Hoy (COP)</span><input type="text" inputmode="numeric" value="${ea4(montoTexto(f.monto))}" oninput="onRebInput(${i},'monto',this.value)"></label>
+    </div>`).join("");
+  const metodos = METODOS_S4.map(m => `
+    <div class="jardin-pick metodo-pick ${sesionM.metodo === m.clave ? "sel" : ""}" onclick="elegirMetodoS4('${m.clave}', this)">
+      <div><div class="nom">${esc(m.tipo)}: ${esc(m.txt)}</div><div class="sub">${esc(m.det)}</div></div>
+    </div>`).join("");
+  document.getElementById("app").innerHTML = `
+    ${headerS4()}
+    ${rutaS4(1)}
+    <div class="card">
+      <h2>Tu receta se desordena sola</h2>
+      <p class="lead">Aunque no toques nada, los porcentajes cambian: una parte crece más rápido que otra, como un pan que se infla más de un lado. Rebalancear es volver a tu receta original. No es cambiar de estrategia.</p>
+      <div class="panel-acciones" style="margin-bottom:8px;">
+        ${filasRebDesdePanel() ? `<button class="btn-mini ${modoReb === "mio" ? "activo" : ""}" onclick="cambiarModoReb('mio')">Mi portafolio</button>` : ""}
+        <button class="btn-mini ${modoReb === "ejemplo" ? "activo" : ""}" onclick="cambiarModoReb('ejemplo')">Ejemplo de la sesión ($10.000.000)</button>
+      </div>
+      <p class="lead" style="font-size:13px;">${modoReb === "mio" ? "Prellenamos con tu rango objetivo y tu balance. Cambia los números para probar." : "Perfil moderado un año después: 25/15/40/15/5 de meta. El tronco creció y hay que ajustar."}</p>
+      ${filasIn}
+      <div id="reb-res"></div>
+
+      <h3>¿Cada cuánto rebalanceo?</h3>
+      <p class="lead">Elige tu método. Lo que sí es igual para todas: nunca revises a diario.</p>
+      ${pista ? `<div class="microcopy">${esc(pista)}</div>` : ""}
+      ${metodos}
+      <button class="btn" onclick="seguirDeRebalanceoS4()">${sesionM.editando ? "Guardar cambios" : "Seguir: el semáforo"}</button>
+      ${sesionM.editando ? `<button class="link-volver" onclick="pantallaEditarS4()">← Volver</button>` : `<button class="link-volver" onclick="pantallaRecetaS4()">Volver a mi receta</button>`}
+    </div>
+  `;
+  pintarRebalanceoS4();
+  window.scrollTo(0, 0);
+}
+function seguirDeRebalanceoS4(){
+  if(!sesionM.metodo){ toast("Elige cada cuánto vas a rebalancear"); return; }
+  if(sesionM.editando){ guardarDisciplinaS4(true); return; }
+  pantallaSemaforoS4();
+}
+
+/* ============================================================
+   PANTALLA 3 — SEMÁFORO DE SEÑALES
+   ============================================================ */
+function elegirSemaforoS4(i, color){
+  if(sesionM.semaforoListo) return;
+  sesionM.semaforo[i] = color;
+  const fila = document.getElementById("sem-" + i);
+  if(fila) fila.querySelectorAll(".sem-op").forEach(b => b.classList.toggle("sel", b.dataset.c === color));
+}
+function pantallaSemaforoS4(){
+  const listo = sesionM.semaforoListo;
+  const aciertos = aciertosSemaforoS4(sesionM.semaforo);
+  const filas = SITUACIONES_S4.map((s, i) => {
+    const mia = sesionM.semaforo[i];
+    const botones = Object.keys(SEM_S4).map(k => `
+      <button type="button" class="sem-op ${mia === k ? "sel" : ""} ${listo && s.c === k ? "correcta" : ""}" data-c="${k}" ${listo ? "disabled" : ""} onclick="elegirSemaforoS4(${i},'${k}')">
+        <i style="background:${SEM_S4[k].color}"></i>${SEM_S4[k].nombre}
+      </button>`).join("");
+    const res = listo ? `<div class="sem-res ${mia === s.c ? "ok" : "no"}">${mia === s.c ? "Acertaste. " : `La respuesta es ${SEM_S4[s.c].nombre.toLowerCase()}. `}${esc(s.r)}</div>` : "";
+    return `<div class="sem-fila" id="sem-${i}"><div class="sem-t">${esc(s.t)}</div><div class="sem-ops">${botones}</div>${res}</div>`;
+  }).join("");
+  document.getElementById("app").innerHTML = `
+    ${headerS4()}
+    ${rutaS4(2)}
+    <div class="card">
+      <h2>Verde, amarillo o rojo: ¿esto amerita actuar?</h2>
+      <p class="lead">Lee cada situación y decide. Casi todo lo que da ganas de actuar es ruido: lo que de verdad pide ajustar tu estrategia es tu vida cambiando, no el mercado.</p>
+      <div class="sem-leyenda">${Object.keys(SEM_S4).map(k => `<span><i style="background:${SEM_S4[k].color}"></i>${SEM_S4[k].nombre}: ${SEM_S4[k].sub}</span>`).join("")}</div>
+      ${filas}
+      ${listo
+        ? `<div class="microcopy">Acertaste ${aciertos} de ${SITUACIONES_S4.length}. La pregunta de fondo: ¿esto cambió el MERCADO, o cambió TU VIDA? Solo lo segundo amerita tocar la estrategia.</div>
+           <button class="btn" onclick="${sesionM.editando ? "guardarDisciplinaS4(true)" : "pantallaCartaS4()"}">${sesionM.editando ? "Guardar cambios" : "Seguir: mi carta"}</button>`
+        : `<button class="btn" onclick="verResultadoSemaforoS4()">Ver mis respuestas</button>`}
+      ${sesionM.editando ? `<button class="link-volver" onclick="pantallaEditarS4()">← Volver</button>` : `<button class="link-volver" onclick="pantallaRebalanceoS4(true)">Volver al rebalanceo</button>`}
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+function verResultadoSemaforoS4(){
+  if(Object.keys(sesionM.semaforo).length < SITUACIONES_S4.length){ toast("Clasifica las 9 situaciones"); return; }
+  sesionM.semaforoListo = true;
+  pantallaSemaforoS4();
+}
+function repetirSemaforoS4(){
+  sesionM.semaforo = {}; sesionM.semaforoListo = false;
+  pantallaSemaforoS4();
+}
+
+/* ============================================================
+   PANTALLA 4 — MI CARTA A MI YO DEL FUTURO
+   ============================================================ */
+function textoCartaS4(estilo, razon, horizonte, frase){
+  const limpia = t => String(t || "").trim().replace(/[.\s]+$/, "");
+  return `Querida yo del futuro: elegí ${limpia(estilo) || "[mi estilo]"} porque ${limpia(razon) || "[mi razón]"}. Esta plata la necesito en ${String(horizonte || "[mi horizonte]").toLowerCase()}, no mañana. Si estás viendo números rojos, recuerda: ${limpia(frase) || "[mi razón para no vender hoy]"}.`;
+}
+function nombreEstiloS4(){
+  const e = panelDatos.estilo_s3; if(!e) return "";
+  return e.estiloElegido + (e.estiloMezcla ? " + " + e.estiloMezcla : "");
+}
+function actualizarCartaS4(){
+  sesionM.razon = document.getElementById("in-razon").value;
+  sesionM.horizonte = document.getElementById("in-horizonte").value;
+  sesionM.frase = document.getElementById("in-frase").value;
+  const el = document.getElementById("carta-prev");
+  if(el) el.textContent = textoCartaS4(nombreEstiloS4(), sesionM.razon, sesionM.horizonte, sesionM.frase);
+}
+function pantallaCartaS4(){
+  document.getElementById("app").innerHTML = `
+    ${headerS4()}
+    ${rutaS4(3)}
+    <div class="card">
+      <h2>Escríbele una carta a tu yo del futuro</h2>
+      <p class="lead">Para abrirla el día que el portafolio caiga fuerte y el pánico tiente a vender. Decidir en frío, por escrito, cuesta mucho menos que decidir en caliente. Escríbela hoy, con calma.</p>
+      <label for="in-razon">¿Por qué elegiste tu estilo (${esc(nombreEstiloS4())})?</label>
+      <textarea id="in-razon" oninput="actualizarCartaS4()" placeholder="Ej: tengo poco tiempo al mes y prefiero un plan simple">${esc(sesionM.razon)}</textarea>
+      <label for="in-horizonte">¿Para cuándo necesitas esa plata de verdad?</label>
+      <select id="in-horizonte" class="select-s3" onchange="actualizarCartaS4()">
+        <option value="">Elige tu horizonte</option>
+        ${HORIZONTE_OPTIONS.map(h => `<option value="${ea4(h)}" ${sesionM.horizonte === h ? "selected" : ""}>${esc(h)}</option>`).join("")}
+      </select>
+      <label for="in-frase">Una frase de recordatorio: ¿por qué no vender hoy?</label>
+      <textarea id="in-frase" oninput="actualizarCartaS4()" placeholder="Ej: una caída no es una pérdida mientras no venda">${esc(sesionM.frase)}</textarea>
+      <h3>Así quedó tu carta</h3>
+      <div class="carta-prev" id="carta-prev">${esc(textoCartaS4(nombreEstiloS4(), sesionM.razon, sesionM.horizonte, sesionM.frase))}</div>
+      <button class="btn" onclick="guardarDisciplinaS4(${sesionM.editando ? "true" : "false"})">${sesionM.editando ? "Guardar cambios" : "Guardar mi disciplina"}</button>
+      ${sesionM.editando ? `<button class="link-volver" onclick="pantallaEditarS4()">← Volver</button>` : `<button class="link-volver" onclick="pantallaSemaforoS4()">Volver al semáforo</button>`}
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   GUARDAR
+   ============================================================ */
+function guardarDisciplinaS4(desdeEdicion){
+  /* Si viene de la pantalla de la carta, toma lo escrito en los campos */
+  if(document.getElementById("in-razon")) actualizarCartaS4();
+  const m = metodoS4(sesionM.metodo);
+  if(!m){ toast("Elige cada cuándo vas a rebalancear"); return; }
+  if(!sesionM.razon.trim()){ toast("Cuéntanos por qué elegiste tu estilo"); return; }
+  if(!sesionM.horizonte){ toast("Elige para cuándo necesitas esa plata"); return; }
+  if(!sesionM.frase.trim()){ toast("Escribe tu frase de recordatorio"); return; }
+  if(Object.keys(sesionM.semaforo).length < SITUACIONES_S4.length){ toast("Clasifica las 9 situaciones del semáforo"); return; }
+  const clave = estiloClaveS4();
+  const registro = {
+    tipo: "mantenimiento_s4",
+    fecha: new Date().toISOString(),
+    fechaSesionLabel: FECHA_SESION4_LABEL,
+    nombre: sesionV.nombre, email: emailOrquestador || sesionV.email,
+    metodoClave: m.clave,
+    metodoRebalanceo: m.tipo + ": " + m.txt,
+    benchmark: clave ? BENCHMARK_S4[clave].cual : "",
+    semaforoAciertos: aciertosSemaforoS4(sesionM.semaforo),
+    semaforoTotal: SITUACIONES_S4.length,
+    semaforoRespuestas: SITUACIONES_S4.map((s, i) => sesionM.semaforo[i] || "").join(","),
+    cartaEstilo: nombreEstiloS4(),
+    cartaRazon: sesionM.razon.trim(),
+    cartaHorizonte: sesionM.horizonte,
+    cartaFrase: sesionM.frase.trim(),
+    cartaTexto: textoCartaS4(nombreEstiloS4(), sesionM.razon, sesionM.horizonte, sesionM.frase)
+  };
+  enviarABaseDeDatos(registro);
+  guardarLocalS4(registro);
+  panelDatos.mantenimiento_s4 = registro;
+  if(desdeEdicion || sesionM.editando){ sesionM.editando = false; toast("Cambios guardados"); pantallaPanel(); return; }
+  pantallaConfirmacionS4();
+}
+
+/* ============================================================
+   EDITAR DESDE EL PANEL (por partes)
+   ============================================================ */
+function editarParteS4(parte){
+  sesionM.editando = true;
+  if(parte === "metodo") pantallaRebalanceoS4();
+  else if(parte === "semaforo"){ sesionM.semaforo = {}; sesionM.semaforoListo = false; pantallaSemaforoS4(); }
+  else pantallaCartaS4();
+}
+function pantallaEditarS4(){
+  const m = panelDatos.mantenimiento_s4 || {};
+  sesionM.editando = true;
+  document.getElementById("app").innerHTML = `
+    ${headerS4()}
+    <div class="card">
+      <h2>Mi disciplina de mantenimiento</h2>
+      <p class="lead">Cambia la parte que quieras. Lo demás queda como está.</p>
+      <div class="vehiculo-card compacta"><div class="comp-fila"><div><h3>Cuándo rebalanceo</h3><div class="detalle-v">${esc(m.metodoRebalanceo || "")}</div></div>
+        <button class="btn-mini" onclick="editarParteS4('metodo')">Editar</button></div></div>
+      <div class="vehiculo-card compacta"><div class="comp-fila"><div><h3>Mi semáforo</h3><div class="detalle-v">${n0(m.semaforoAciertos)} de ${n0(m.semaforoTotal) || SITUACIONES_S4.length} situaciones</div></div>
+        <button class="btn-mini" onclick="editarParteS4('semaforo')">Repetir</button></div></div>
+      <div class="vehiculo-card compacta"><div class="comp-fila"><div><h3>Mi carta</h3><div class="detalle-v">${esc(m.cartaFrase || "")}</div></div>
+        <button class="btn-mini" onclick="editarParteS4('carta')">Editar</button></div></div>
+      <button class="btn" onclick="pantallaEntregable()">Ver y descargar mi Estrategia completa (PDF)</button>
+      <button class="link-volver" onclick="pantallaPanel()">← Volver a mi panel</button>
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   PANTALLA 5 — LAS 4 PIEZAS, COMPLETAS (con confeti)
+   ============================================================ */
+function pantallaConfirmacionS4(){
+  const m = panelDatos.mantenimiento_s4, e = panelDatos.estilo_s3;
+  const r = panelDatos.rango_s1 || sesionV.rango_s1 || {}, vs = panelDatos.vehiculos_s2 || [];
+  document.getElementById("app").innerHTML = `
+    ${headerS4()}
+    ${rutaS4(4)}
+    <div class="card">
+      <div class="diag-hero celebra">
+        <div class="diag-ilus"><img src="assets/regadera.png" alt=""></div>
+        <div class="diag-n">Tu Estrategia de Inversión, con sus 4 piezas</div>
+        <div class="diag-razones centro">Hoy no aprendiste qué comprar. Aprendiste a sostener lo que ya construiste.</div>
+      </div>
+      <div class="resumen-row"><span class="k">1 · Rango objetivo</span><span class="v">${idealLineaS3(r)}</span></div>
+      <div class="resumen-row"><span class="k">2 · Vehículo${vs.length > 1 ? "s" : ""}</span><span class="v">${esc(vs.map(v => v.vehiculoElegido).join(" · ") || "—")}</span></div>
+      <div class="resumen-row"><span class="k">3 · Estilo de decisión</span><span class="v">${esc(e ? e.estiloElegido : "—")}${e && e.estiloMezcla ? " + " + esc(e.estiloMezcla) : ""}</span></div>
+      <div class="resumen-row"><span class="k">4 · Disciplina</span><span class="v">${esc(m.metodoRebalanceo)}</span></div>
+      <h3>Tu carta</h3>
+      <div class="carta-prev">${esc(m.cartaTexto)}</div>
+      <div class="microcopy">Guárdala donde la encuentres el día que el portafolio caiga. La diferencia entre quien se queda invertida y quien vende en el peor momento no es información: es tener esto decidido de antemano.</div>
+      <button class="btn" onclick="pantallaEntregable()">Ver y descargar mi Estrategia completa (PDF)</button>
+      <button class="btn secundario" onclick="pantallaPanel()">Ver mi panel</button>
+    </div>
+  `;
+  window.scrollTo(0, 0);
+  lanzarConfeti();
+}
+
+/* ============================================================
+   PÁGINA 4 DEL PDF — MI DISCIPLINA DE MANTENIMIENTO
+   ============================================================ */
+function paginaMantDocHTML(m, numPag, total){
+  const r = panelDatos.rango_s1 || {};
+  const met = metodoS4(m.metodoClave);
+  return `
+      <section class="doc-page">
+        <div class="doc-head">
+          <img class="logo" src="assets/logo-feminario.png" alt="Feminario">
+          <div class="doc-centro"><h1 class="doc-titulo">Mi Disciplina de Mantenimiento</h1><div class="doc-sub">Página ${numPag} · Sesión 4</div></div>
+          <img class="doc-ilus-libre" src="assets/regadera.png" alt="">
+        </div>
+        <div class="doc-meta grande"><div class="doc-et">Mi receta</div><div class="doc-meta-t">${idealLineaS3(r)}</div>
+          <div class="doc-sub">No cambia solo porque el mercado tuvo un buen o mal año. Sigue siendo mi meta hasta que yo decida cambiarla.</div></div>
+        ${m.benchmark ? `<h4>Mi punto de comparación</h4><div class="doc-meta">${esc(m.benchmark)}</div>` : ""}
+        <h4>Cuándo rebalanceo</h4>
+        <div class="doc-meta"><b>${esc(m.metodoRebalanceo || "")}</b>${met ? `<br>${esc(met.det)}` : ""}<br>Nunca reviso a diario: trimestral como mucho, y solo para contexto, no para actuar.</div>
+        <h4>Mis 3 preguntas antes de actuar</h4>
+        <table><tr><th>Pregunta</th><th>Qué hago con la respuesta</th></tr>${PREGUNTAS_S4.map((p, i) => `<tr><td><b>${i + 1}. ${esc(p.q)}</b></td><td>${esc(p.r)}</td></tr>`).join("")}</table>
+        <h4>Mi semáforo</h4>
+        <div class="doc-meta">Clasifiqué bien <b>${n0(m.semaforoAciertos)} de ${n0(m.semaforoTotal) || SITUACIONES_S4.length}</b> situaciones. Lo que pide ajustar mi estrategia es mi vida cambiando, no el mercado.</div>
+        <h4>Mi carta a mi yo del futuro</h4>
+        <div class="doc-meta"><i>“${esc(m.cartaTexto || "")}”</i></div>
+        <div class="doc-nota-final">Rebalancear no es castigar lo que subió: es evitar que mi portafolio tenga más riesgo del que elegí.</div>
+        <div class="doc-pie"><span>Feminario · feminario.co</span><span>${numPag} / ${total}</span></div>
+      </section>`;
 }
 
 /* ============================================================
@@ -3444,7 +3945,7 @@ function pantallaInicioUnificado(mensajeError){
   document.getElementById("app").innerHTML = `
     ${headerOrquestador("Bienvenida")}
     <div class="card">
-      <p class="lead">Este es tu espacio para construir, paso a paso, tu Estrategia de Inversión completa: tu Balance de Portafolio, tu Rango Objetivo, tu Vehículo elegido y tu Estilo de decisión.</p>
+      <p class="lead">Este es tu espacio para construir, paso a paso, tu Estrategia de Inversión completa: tu Balance de Portafolio, tu Rango Objetivo, tu Vehículo elegido, tu Estilo de decisión y tu Disciplina de mantenimiento.</p>
       <p>Escribe tu correo y seguimos justo donde te quedaste.</p>
       <label>Tu email</label>
       <input type="email" id="in-email-orq" placeholder="tucorreo@ejemplo.com" value="${esc(emailOrquestador)}">
@@ -3477,7 +3978,8 @@ async function buscarEntradaUnificada(){
     balance: datos.balance || null,
     rango_s1: datos.rango_s1 || null,
     vehiculos_s2: (datos.vehiculos_s2 || []).slice(),
-    estilo_s3: datos.estilo_s3 || null
+    estilo_s3: datos.estilo_s3 || null,
+    mantenimiento_s4: datos.mantenimiento_s4 || leerLocalS4(email)
   };
   if(!panelDatos.vehiculos_s2.length && datos.vehiculo_s2) panelDatos.vehiculos_s2.push(datos.vehiculo_s2); // script anterior
   if(panelDatos.balance || panelDatos.rango_s1 || panelDatos.vehiculos_s2.length){ pantallaPanel(); return; }
@@ -3538,8 +4040,9 @@ function pantallaPanel(){
 
   /* Avance */
   const est = panelDatos.estilo_s3;
-  const pasos = [!!b, !!r, vs.length > 0, !!est], hechos = pasos.filter(Boolean).length;
-  const avance = rutaHTML(["Balance", "Rango", "Vehículos", "Estilo"].map((t, i) => ({ t, hecho: pasos[i] })), pasos.indexOf(false));
+  const mant = panelDatos.mantenimiento_s4;
+  const pasos = [!!b, !!r, vs.length > 0, !!est, !!mant], hechos = pasos.filter(Boolean).length;
+  const avance = rutaHTML(["Balance", "Rango", "Vehículos", "Estilo", "Disciplina"].map((t, i) => ({ t, hecho: pasos[i] })), pasos.indexOf(false));
 
   /* Meta grande e información rápida */
   const conFecha = vs.map(v => ({ v, d: fechaDeVehiculo(v) })).filter(x => x.d && diasHasta(x.d) >= 0).sort((a, c) => a.d - c.d);
@@ -3598,6 +4101,22 @@ function pantallaPanel(){
       </div>
     </div>
     <button class="btn" style="margin-top:0; margin-bottom:16px;" onclick="empezarSesion3()">Ver mi diagnóstico &rarr;</button>` : "");
+  /* Sesión 4: la disciplina de mantenimiento (pendiente = invitación; hecha = tarjeta compacta con Editar) */
+  const cardMantTop = (est && !mant) ? `
+    <div class="estilo-card invita">
+      <img src="assets/regadera.png" alt="">
+      <div style="flex:1; min-width:0;">
+        <div class="meta-et">Sesión 4 · Nuevo</div>
+        <div class="estilo-n">Arma tu disciplina de mantenimiento</div>
+        <div class="detalle-v">Cuándo rebalancear, cuándo no tocar nada y tu carta a tu yo del futuro.</div>
+      </div>
+    </div>
+    <button class="btn" style="margin-top:0; margin-bottom:16px;" onclick="empezarSesion4()">Armar mi disciplina &rarr;</button>` : "";
+  const cardMantCompacta = mant ? `
+    <div class="vehiculo-card compacta">
+      <div class="comp-fila"><div><h3>Mi disciplina de mantenimiento ✓</h3><div class="detalle-v">${esc(mant.metodoRebalanceo || "")}${mant.semaforoAciertos !== undefined ? " · semáforo " + esc(mant.semaforoAciertos) + " de " + esc(mant.semaforoTotal || 9) : ""}</div></div>
+      <button class="btn-mini" onclick="empezarSesion4()">Editar</button></div>
+    </div>` : "";
   const kpiLista = [];
   if(b && b.patrimonioNeto_cop !== undefined && b.patrimonioNeto_cop !== "") kpiLista.push([cop(b.patrimonioNeto_cop), "Patrimonio neto", "Lo que tengo menos lo que debo"]);
   if(b && b.totalPasivos_cop !== undefined && b.totalPasivos_cop !== "") kpiLista.push([cop(b.totalPasivos_cop), "Lo que debo", "Suma de mis deudas"]);
@@ -3672,11 +4191,12 @@ function pantallaPanel(){
       ${avance}
       ${bloqueMeta}
       ${cardEstiloTop}
+      ${cardMantTop}
       ${kpiHTML}
       ${cardPatrimonio}
       ${cardRadiografia}
       ${cardVehiculos}
-      ${cardEstiloCompacta}${cardRango}${cardBalance}
+      ${cardMantCompacta}${cardEstiloCompacta}${cardRango}${cardBalance}
       ${botonEntregable}
       ${siguiente}
       <button class="link-volver" onclick="pantallaInicioUnificado()">← Usar otro correo</button>
