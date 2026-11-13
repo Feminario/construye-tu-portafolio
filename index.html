@@ -1559,10 +1559,18 @@ function pantallaContexto(state){
     </div>
   `;
 }
+let gastoConfirmado = null;
 function verResultado(){
   draft.gastoMensual = leerLista("gastoMensual");
   const tasas = { usd: draft.tasaUSD, eur: draft.tasaEUR };
-  if(sumaListaCop(draft.gastoMensual, tasas) <= 0){ alertaSuave("Nos falta tu gasto mensual para calcular tu colchón 💛"); return; }
+  const gastoTotal = sumaListaCop(draft.gastoMensual, tasas);
+  if(gastoTotal <= 0){ alertaSuave("Nos falta tu gasto mensual para calcular tu colchón 💛"); return; }
+  /* Un gasto mensual enorme casi siempre es un cero de más y deja el colchón en 0 meses. Se pide confirmar una vez. */
+  if(gastoTotal > 50000000 && gastoConfirmado !== gastoTotal){
+    gastoConfirmado = gastoTotal;
+    alertaSuave("¿Tu gasto mensual es de " + cop(gastoTotal) + "? Parece muy alto y dejaría tu colchón en 0. Revisa los ceros; si está bien, toca de nuevo el botón.");
+    return;
+  }
 
   const state = getState();
   const snapshot = calcularSnapshot(draft, tasas);

@@ -356,6 +356,14 @@ async function buscarPersona(){
   sesion.email = email;
   sesion.nombre = datos.rango_s1.nombre || (datos.balance && datos.balance.nombre) || "";
   sesion.rango_s1 = datos.rango_s1;
+  /* Trae los vehículos que ya guardó para que no vea la lista vacía al volver. */
+  const guardados = (datos.vehiculos_s2 && datos.vehiculos_s2.length) ? datos.vehiculos_s2 : (datos.vehiculo_s2 ? [datos.vehiculo_s2] : []);
+  sesion.vehiculos = guardados.map(g => {
+    const f = MENU_VEHICULOS.find(m => m.nombre === g.parteJardin);
+    return f ? { clave:f.clave, vehiculo:g.vehiculoElegido || "", monto:Number(g.monto_vehiculo_cop)||0, cuando:g.cuandoAportar || "",
+      yaTenia:g.yaTeniaEnEstaParte === "sí", queTenia:g.queTeniaYa || "", nota:g.nota || "", id:g.id || "" } : null;
+  }).filter(Boolean);
+  if(sesion.vehiculos.length){ pantallaConfirmacion(); return; }
   pantallaResumenS1();
 }
 
@@ -513,7 +521,8 @@ function guardarVehiculo(){
   const editando = sesion.editIdx != null;
   const clave = editando ? sesion.vehiculos[sesion.editIdx].clave : sesion.brecha;
   const f = filaMenu(clave);
-  const v = { clave, vehiculo, monto, cuando, yaTenia, queTenia, nota };
+  const idPrevio = editando ? (sesion.vehiculos[sesion.editIdx].id || "") : "";
+  const v = { clave, vehiculo, monto, cuando, yaTenia, queTenia, nota, id:idPrevio };
   if(editando) sesion.vehiculos[sesion.editIdx] = v; else sesion.vehiculos.push(v);
   sesion.editIdx = null; sesion.borrador = null;
 
@@ -528,7 +537,8 @@ function guardarVehiculo(){
     cuandoAportar: cuando,
     yaTeniaEnEstaParte: yaTenia ? "sí" : "no",
     queTeniaYa: queTenia,
-    nota: nota
+    nota: nota,
+    idAnterior: idPrevio
   });
 
   pantallaConfirmacion();
