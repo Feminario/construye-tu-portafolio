@@ -4159,6 +4159,7 @@ function pantallaPanel(){
   const cardVehiculos = vs.length ? `
     <div class="vehiculo-card">
       <h3>Mis vehículos ✓</h3>
+      <div class="detalle-v" style="margin-bottom:8px;">Para cambiar un vehículo toca «Editar este vehículo»: solo se abre ese, sin repetir lo demás.</div>
       ${vehiculosCirculos(vs, proximo)}
       ${vs.map(v => {
         const d = fechaDeVehiculo(v);
@@ -4172,7 +4173,7 @@ function pantallaPanel(){
           ${v.porQueCumple ? `<div class="veh-det">💬 ${esc(v.porQueCumple)}</div>` : ""}
           ${aporteMetaHTML(b, r, v, meta)}
           <div class="panel-acciones">
-            <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar</button>
+            <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar este vehículo</button>
             <button class="btn-mini peligro" onclick="quitarVehiculo('${esc(v.id)}')">Quitar</button>
           </div>
         </div>`; }).join("")}
