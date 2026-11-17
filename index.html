@@ -794,13 +794,15 @@ async function fetchDatosLive(email){
    la barra de composición.
    ============================================================ */
 const ASSET_CATS = [
-  { key:"liquidez", label:"Liquidez — tu Fondo de Autonomía", help:"Ahorros, efectivo, cualquier cuenta a la que puedas entrar hoy mismo si algo pasa.", color:"#6E5AA8" },
+  { key:"liquidez", label:"Liquidez — tu ahorro extra para el portafolio", help:"Ahorros, efectivo, cualquier cuenta a la que puedas entrar hoy y que SÍ quieres usar para tu portafolio. Si tienes un fondo de emergencia aparte, no lo pongas aquí: va en la siguiente casilla.", color:"#6E5AA8" },
+  { key:"fondoAutonomia", label:"Fondo de Autonomía (tu colchón de emergencia)", help:"OPCIONAL. La plata que guardas por si algo pasa y que no vas a invertir. Cuenta en tu patrimonio y para tus meses de colchón, pero NO cuenta como liquidez de tu portafolio. Si no tienes un fondo aparte, déjala en blanco.", color:"#8F7BD0" },
   { key:"rentaFija", label:"Renta fija (CDT, fiducuenta)", help:"Plata guardada a un plazo pactado — no la necesitas ya, pero tampoco quieres que se mueva con el mercado.", color:"#E2703D" },
   { key:"pension", label:"Pensión y cesantías", help:"Lo que tienes acumulado en pensión obligatoria, pensión voluntaria y cesantías.", color:"#2F9E86" },
   { key:"vivienda", label:"Vivienda", help:"El valor comercial de tu vivienda (si es propia) más cualquier otro inmueble que tengas para arrendar o vender.", color:"#3E76D8" },
   { key:"mercado", label:"Inversión de mercado", help:"Acciones, ETFs, fondos de inversión colectiva (FICs) o criptomonedas.", color:"#C14F86" },
   { key:"negocio", label:"Negocio propio", help:"El valor estimado de tu parte en un negocio o emprendimiento propio (si tienes).", color:"#B58A2E" },
   { key:"otros", label:"Vehículo y otros activos", help:"Tu vehículo, joyas u otros bienes de valor que no encajen arriba.", color:"#9C3F55" },
+  { key:"bolsilloAparte", label:"Bolsillo aparte (plata que no entra a tu portafolio)", help:"OPCIONAL. Ahorro o inversión con otro propósito que no planeas tocar, por ejemplo el estudio de tus hijos a 10 años o más. Cuenta en tu patrimonio, pero NO cuenta en el portafolio que estás armando. Si no tienes, déjala en blanco.", color:"#B58ADA" },
 ];
 const DEBT_CATS = [
   { key:"tarjetas", label:"Tarjetas de crédito" },
@@ -817,6 +819,8 @@ const MONEDAS = ["COP", "USD", "EUR"];
 /* Campos simples de plata (id del dato + prefijo para el export plano) */
 const CAMPOS_SIMPLES = [
   { id:"liquidez", pref:"activo_liquidez" },
+  { id:"fondoAutonomia", pref:"activo_fondoAutonomia" },
+  { id:"bolsilloAparte", pref:"activo_bolsilloAparte" },
   { id:"rentaFija", pref:"activo_rentaFija" },
   { id:"pension", pref:"activo_pension" },
   { id:"viviendaPropia", pref:"activo_viviendaPropia" },
@@ -1052,6 +1056,8 @@ function calcularSnapshot(draft, tasas){
   tasas = { usd: n(tasas.usd) || 4000, eur: n(tasas.eur) || 4300 };
   const activos = {
     liquidez: sumaListaCop(draft.liquidez, tasas),
+    fondoAutonomia: sumaListaCop(draft.fondoAutonomia, tasas),     // 17 nov 2026: cuenta en patrimonio y colchón, no en lo invertible
+    bolsilloAparte: sumaListaCop(draft.bolsilloAparte, tasas),     // cuenta en patrimonio, no en el portafolio
     rentaFija: sumaListaCop(draft.rentaFija, tasas),
     pension: sumaListaCop(draft.pension, tasas),
     vivienda: sumaListaCop(draft.viviendaPropia, tasas) + sumaListaCop(draft.viviendaInversion, tasas),
@@ -1070,7 +1076,7 @@ function calcularSnapshot(draft, tasas){
   const totalActivos = Object.values(activos).reduce((a,b)=>a+b, 0);
   const totalPasivos = Object.values(pasivos).reduce((a,b)=>a+b, 0);
   const patrimonioNeto = totalActivos - totalPasivos;
-  const mesesColchon = gastoMensual > 0 ? Math.round((activos.liquidez / gastoMensual)*10)/10 : 0;
+  const mesesColchon = gastoMensual > 0 ? Math.round(((activos.liquidez + (activos.fondoAutonomia||0)) / gastoMensual)*10)/10 : 0;
   const relacionDeudaActivos = totalActivos > 0 ? totalPasivos/totalActivos : (totalPasivos>0 ? 1 : 0);
 
   let maxCat = null, maxPct = 0;
@@ -1145,7 +1151,7 @@ function calcularSnapshot(draft, tasas){
   }
 
   const raw = {
-    liquidez: draft.liquidez, rentaFija: draft.rentaFija, pension: draft.pension,
+    liquidez: draft.liquidez, fondoAutonomia: draft.fondoAutonomia, bolsilloAparte: draft.bolsilloAparte, rentaFija: draft.rentaFija, pension: draft.pension,
     viviendaPropia: draft.viviendaPropia, viviendaInversion: draft.viviendaInversion,
     mercadoHoldings: draft.mercadoHoldings || [],
     negocio: draft.negocio, vehiculo: draft.vehiculo, otrosActivos: draft.otrosActivos,
@@ -1177,7 +1183,7 @@ function calcularSnapshot(draft, tasas){
 function evaluarCoherencia(perfilRiesgo, metas, activos, totalActivos){
   if(!perfilRiesgo || !metas || totalActivos <= 0) return null;
   const pctMercado = activos.mercado / totalActivos;
-  const pctConservador = (activos.liquidez + activos.rentaFija) / totalActivos;
+  const pctConservador = (activos.liquidez + (activos.fondoAutonomia||0) + activos.rentaFija) / totalActivos;
   const pctLargoPlazo = (activos.mercado + activos.pension) / totalActivos;
   const horizonteLargo = metas.horizonte === "Entre 3 y 7 años" || metas.horizonte === "Más de 7 años";
   const horizonteCorto = metas.horizonte === "Menos de 1 año";
@@ -1485,6 +1491,15 @@ function pantallaActivos(state){
         </div>
         <small class="help">Solo las usamos para sumar todo en una sola cifra y sacar porcentajes — tus valores originales en dólares o euros quedan guardados tal cual los escribiste. Ajústalas a la tasa del día si quieres más precisión.</small>
       </div>
+      <div class="rango-box" style="margin:12px 0;">
+        <b style="color:var(--morado-oscuro);">💡 ¿Tienes un fondo de emergencia o plata de otra meta que no quieres que cuente en tu portafolio?</b>
+        <ol style="margin:8px 0 0 18px; padding:0; font-size:13.5px; line-height:1.5;">
+          <li>Baja hasta <b>«Fondo de Autonomía (tu colchón de emergencia)»</b> y escribe ahí lo que guardas por si algo pasa. Cuenta en tu patrimonio y en tus meses de colchón, pero <b>no</b> como liquidez para invertir.</li>
+          <li>En <b>«Liquidez — tu ahorro extra»</b> deja solo la plata que sí quieres usar en tu portafolio.</li>
+          <li>Baja hasta <b>«Bolsillo aparte»</b> para lo que no entra al portafolio (por ejemplo, el estudio de tus hijos a 10 años o más). Cuenta en tu patrimonio, pero no en tu Rango.</li>
+          <li>Si ya habías llenado tu balance, entra desde tu panel con <b>«Actualizar mis números»</b>: todo aparece cargado, solo mueves lo que cambió. Si no tienes estas dos casillas, déjalas en blanco.</li>
+        </ol>
+      </div>
       ${ASSET_CATS.map(grupoActivo).join("")}
       <button class="btn" onclick="guardarActivos()">Siguiente: tus deudas</button>
       ${botonVolverPanel()}
@@ -1781,6 +1796,8 @@ function normalizarPersona(p){
     arquetipo: p.arquetipo || "",
     fecha: p.fecha || "",
     activo_liquidez_cop: numOrCero(p.activo_liquidez_cop),
+    activo_fondoAutonomia_cop: numOrCero(p.activo_fondoAutonomia_cop),
+    activo_bolsilloAparte_cop: numOrCero(p.activo_bolsilloAparte_cop),
     activo_rentaFija_cop: numOrCero(p.activo_rentaFija_cop),
     activo_mercado_cop: numOrCero(p.activo_mercado_cop),
     activo_pension_cop: numOrCero(p.activo_pension_cop),
@@ -1805,7 +1822,7 @@ async function fetchPersonaLive(email){
   return normalizarPersona(data.persona);
 }
 function estructuralInvertible(p){
-  const estructural = p.activo_viviendaPropia_cop + p.activo_viviendaInversion_cop + p.activo_pension_cop + p.activo_negocio_cop + p.activo_vehiculo_cop + p.activo_otrosActivos_cop;
+  const estructural = p.activo_viviendaPropia_cop + p.activo_viviendaInversion_cop + p.activo_pension_cop + p.activo_negocio_cop + p.activo_vehiculo_cop + p.activo_otrosActivos_cop + (p.activo_fondoAutonomia_cop||0) + (p.activo_bolsilloAparte_cop||0);
   const invertible = p.activo_liquidez_cop + p.activo_rentaFija_cop + p.activo_mercado_cop;
   return { estructural, invertible, total: estructural + invertible };
 }
@@ -1918,10 +1935,10 @@ function pantallaSplit(){
       <div class="split-legend"><span>Estructural</span><span>Invertible activamente</span></div>
 
       <h3>Estructural — ${cop(s.estructural)}</h3>
-      <p style="font-size:13.5px; color:var(--texto-suave);">Vivienda propia, pensión, negocio propio, vehículo y otros bienes. Cuenta en tu panorama completo, pero no se reasigna hoy.</p>
+      <p style="font-size:13.5px; color:var(--texto-suave);">Vivienda propia, pensión, negocio propio, vehículo, otros bienes, tu Fondo de Autonomía y tu bolsillo aparte (si los registraste). Cuenta en tu panorama completo, pero no se reasigna hoy.</p>
 
       <h3>Invertible activamente — ${cop(s.invertible)}</h3>
-      <p style="font-size:13.5px; color:var(--texto-suave);">Liquidez, renta fija e inversión de mercado. Sobre esto trabaja tu rango objetivo.</p>
+      <p style="font-size:13.5px; color:var(--texto-suave);">Tu ahorro extra (liquidez), renta fija e inversión de mercado. Sobre esto trabaja tu rango objetivo.</p>
 
       <div class="microcopy">💡 Si dentro de tu categoría de pensión tienes pensión voluntaria, para efectos de este ejercicio cuenta esa parte como invertible — el resto (pensión obligatoria) sí es estructural.</div>
 
@@ -2429,6 +2446,8 @@ function patrimonioHTML(b){
   const g = k => n0(b[k]);
   const items = [
     { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#C2CBFF" },
+    { n:"Fondo de Autonomía", v:g("activo_fondoAutonomia_cop"), c:"#A9B6FF" },
+    { n:"Bolsillo aparte", v:g("activo_bolsilloAparte_cop"), c:"#E8C9F2" },
     { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#CEA2DD" },
     { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#F59356" },
     { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#F7C175" },
@@ -2496,6 +2515,8 @@ function patrimonioDocHTML(b){
   const g = k => n0(b[k]);
   const items = [
     { n:"Liquidez", v:g("activo_liquidez_cop"), c:"#C2CBFF" },
+    { n:"Fondo de Autonomía", v:g("activo_fondoAutonomia_cop"), c:"#A9B6FF" },
+    { n:"Bolsillo aparte", v:g("activo_bolsilloAparte_cop"), c:"#E8C9F2" },
     { n:"Renta fija", v:g("activo_rentaFija_cop"), c:"#CEA2DD" },
     { n:"Inversión de mercado", v:g("activo_mercado_cop"), c:"#F59356" },
     { n:"Pensión y cesantías", v:g("activo_pension_cop"), c:"#F7C175" },
@@ -4143,7 +4164,7 @@ function pantallaPanel(){
   const cardBalance = b ? `
     <div class="vehiculo-card compacta">
       <div class="comp-fila"><div><h3>Mi Balance ✓</h3><div class="detalle-v">Último corte: ${esc(fmtFecha(b.fecha))}</div></div>
-      <button class="btn-mini" onclick="actualizarBalance()">Actualizar</button></div>
+      <button class="btn-mini" onclick="actualizarBalance()">Actualizar mis números</button></div>
     </div>` : "";
   const cardEstiloCompacta = est ? `
     <div class="vehiculo-card compacta">
@@ -4153,12 +4174,13 @@ function pantallaPanel(){
   const cardRango = r ? `
     <div class="vehiculo-card compacta">
       <div class="comp-fila"><div><h3>Mi yo ideal ✓</h3><div class="detalle-v">${n0(r.rango_rentaVariable_pct)}% renta variable · ${n0(r.rango_rentaFija_pct)}% renta fija · ${n0(r.rango_liquidez_pct)}% liquidez · ${n0(r.injerto_pct)}% injerto</div></div>
-      <button class="btn-mini" onclick="editarRango()">Editar</button></div>
+      <button class="btn-mini" onclick="editarRango()">Editar mi rango</button></div>
     </div>` : "";
 
   const cardVehiculos = vs.length ? `
     <div class="vehiculo-card">
       <h3>Mis vehículos ✓</h3>
+      <div class="detalle-v" style="margin-bottom:8px;">Para cambiar un vehículo toca «Editar este vehículo»: solo se abre ese, sin repetir lo demás.</div>
       ${vehiculosCirculos(vs, proximo)}
       ${vs.map(v => {
         const d = fechaDeVehiculo(v);
@@ -4172,7 +4194,7 @@ function pantallaPanel(){
           ${v.porQueCumple ? `<div class="veh-det">💬 ${esc(v.porQueCumple)}</div>` : ""}
           ${aporteMetaHTML(b, r, v, meta)}
           <div class="panel-acciones">
-            <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar</button>
+            <button class="btn-mini" onclick="editarVehiculo('${esc(v.id)}')">Editar este vehículo</button>
             <button class="btn-mini peligro" onclick="quitarVehiculo('${esc(v.id)}')">Quitar</button>
           </div>
         </div>`; }).join("")}
@@ -4211,7 +4233,45 @@ function pantallaPanel(){
     </div>
   `;
 }
-function actualizarBalance(){ desdePanelEdicion = true; ultimoSnapshotGuardado = null; pantallaBienvenidaConEmail(emailOrquestador); }
+/* ACTUALIZAR MI BALANCE desde el panel (17 nov 2026): antes pedía nombre, correo y WhatsApp otra vez, borraba el estado local y dejaba todas las
+   cifras vacías (la clienta tenía que escribir todo de nuevo y, si se equivocaba, perdía su colchón). Ahora se carga el último corte guardado en
+   la hoja (la fuente de verdad) y se entra directo a sus activos: solo cambia lo que cambió. */
+function montosDeDetalle(txt){
+  return String(txt || "").split(" + ").map(t => t.trim()).filter(Boolean).map(t => {
+    const moneda = /^US\$/.test(t) ? "USD" : /^€/.test(t) ? "EUR" : "COP";
+    const monto = Number(t.replace(/^US\$|^€|^\$/, "").replace(/\./g, "").replace(",", "."));
+    return monto > 0 ? { monto, moneda } : null;
+  }).filter(Boolean);
+}
+function holdingsDeDetalle(txt){
+  return String(txt || "").split(" · ").map(t => {
+    const m = t.match(/^(.*?) \[(.*?)\]: (.*)$/); if(!m) return null;
+    const e = montosDeDetalle(m[3])[0]; if(!e) return null;
+    return { ticker: m[1].trim(), tipo: m[2] || "ETF", monto: e.monto, moneda: e.moneda };
+  }).filter(Boolean);
+}
+function hidratarDesdeBalance(b){
+  const secundarias = String(b.metasSecundarias || "").split(";").map(x => x.trim()).filter(Boolean);
+  const state = {
+    nombre: b.nombre || "", email: b.email || emailOrquestador || "", whatsapp: b.whatsapp || "", edad: n(b.edad),
+    perfilRiesgo: { categoria: b.perfilRiesgoCategoria || "", score: n(b.perfilRiesgoScore), respuestas: {} },
+    metas: { principal: b.metaPrincipal || "", horizonte: b.metaHorizonte || "", secundarias, fecha: b.fecha || new Date().toISOString() },
+    historial: []
+  };
+  saveState(state);
+  draft = { tasaUSD: n(b.tasaUSD) || 4000, tasaEUR: n(b.tasaEUR) || 4300 };
+  CAMPOS_SIMPLES.forEach(c => { draft[c.id] = montosDeDetalle(b[c.pref + "_detalle"]); });
+  draft.mercadoHoldings = holdingsDeDetalle(b.activo_mercado_detalle);
+  draftHoldings = draft.mercadoHoldings.length ? draft.mercadoHoldings.map(h => ({ ...h })) : [holdingVacio()];
+  gastoConfirmado = null;
+  pantallaActivos(state);
+  toast("Cargamos tu último corte (" + fmtFecha(b.fecha) + "). Cambia solo lo que cambió 💛");
+}
+function actualizarBalance(){
+  desdePanelEdicion = true; ultimoSnapshotGuardado = null;
+  if(panelDatos.balance) hidratarDesdeBalance(panelDatos.balance);
+  else pantallaBienvenidaConEmail(emailOrquestador);
+}
 function continuarARangoDesdePanel(){
   desdePanelEdicion = true;
   const persona = normalizarPersona(panelDatos.balance);
