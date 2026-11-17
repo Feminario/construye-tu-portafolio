@@ -4143,7 +4143,7 @@ function pantallaPanel(){
   const cardBalance = b ? `
     <div class="vehiculo-card compacta">
       <div class="comp-fila"><div><h3>Mi Balance ✓</h3><div class="detalle-v">Último corte: ${esc(fmtFecha(b.fecha))}</div></div>
-      <button class="btn-mini" onclick="actualizarBalance()">Actualizar</button></div>
+      <button class="btn-mini" onclick="actualizarBalance()">Actualizar mis números</button></div>
     </div>` : "";
   const cardEstiloCompacta = est ? `
     <div class="vehiculo-card compacta">
@@ -4153,7 +4153,7 @@ function pantallaPanel(){
   const cardRango = r ? `
     <div class="vehiculo-card compacta">
       <div class="comp-fila"><div><h3>Mi yo ideal ✓</h3><div class="detalle-v">${n0(r.rango_rentaVariable_pct)}% renta variable · ${n0(r.rango_rentaFija_pct)}% renta fija · ${n0(r.rango_liquidez_pct)}% liquidez · ${n0(r.injerto_pct)}% injerto</div></div>
-      <button class="btn-mini" onclick="editarRango()">Editar</button></div>
+      <button class="btn-mini" onclick="editarRango()">Editar mi rango</button></div>
     </div>` : "";
 
   const cardVehiculos = vs.length ? `
@@ -4211,7 +4211,45 @@ function pantallaPanel(){
     </div>
   `;
 }
-function actualizarBalance(){ desdePanelEdicion = true; ultimoSnapshotGuardado = null; pantallaBienvenidaConEmail(emailOrquestador); }
+/* ACTUALIZAR MI BALANCE desde el panel (17 nov 2026): antes pedía nombre, correo y WhatsApp otra vez, borraba el estado local y dejaba todas las
+   cifras vacías (la clienta tenía que escribir todo de nuevo y, si se equivocaba, perdía su colchón). Ahora se carga el último corte guardado en
+   la hoja (la fuente de verdad) y se entra directo a sus activos: solo cambia lo que cambió. */
+function montosDeDetalle(txt){
+  return String(txt || "").split(" + ").map(t => t.trim()).filter(Boolean).map(t => {
+    const moneda = /^US\$/.test(t) ? "USD" : /^€/.test(t) ? "EUR" : "COP";
+    const monto = Number(t.replace(/^US\$|^€|^\$/, "").replace(/\./g, "").replace(",", "."));
+    return monto > 0 ? { monto, moneda } : null;
+  }).filter(Boolean);
+}
+function holdingsDeDetalle(txt){
+  return String(txt || "").split(" · ").map(t => {
+    const m = t.match(/^(.*?) \[(.*?)\]: (.*)$/); if(!m) return null;
+    const e = montosDeDetalle(m[3])[0]; if(!e) return null;
+    return { ticker: m[1].trim(), tipo: m[2] || "ETF", monto: e.monto, moneda: e.moneda };
+  }).filter(Boolean);
+}
+function hidratarDesdeBalance(b){
+  const secundarias = String(b.metasSecundarias || "").split(";").map(x => x.trim()).filter(Boolean);
+  const state = {
+    nombre: b.nombre || "", email: b.email || emailOrquestador || "", whatsapp: b.whatsapp || "", edad: n(b.edad),
+    perfilRiesgo: { categoria: b.perfilRiesgoCategoria || "", score: n(b.perfilRiesgoScore), respuestas: {} },
+    metas: { principal: b.metaPrincipal || "", horizonte: b.metaHorizonte || "", secundarias, fecha: b.fecha || new Date().toISOString() },
+    historial: []
+  };
+  saveState(state);
+  draft = { tasaUSD: n(b.tasaUSD) || 4000, tasaEUR: n(b.tasaEUR) || 4300 };
+  CAMPOS_SIMPLES.forEach(c => { draft[c.id] = montosDeDetalle(b[c.pref + "_detalle"]); });
+  draft.mercadoHoldings = holdingsDeDetalle(b.activo_mercado_detalle);
+  draftHoldings = draft.mercadoHoldings.length ? draft.mercadoHoldings.map(h => ({ ...h })) : [holdingVacio()];
+  gastoConfirmado = null;
+  pantallaActivos(state);
+  toast("Cargamos tu último corte (" + fmtFecha(b.fecha) + "). Cambia solo lo que cambió 💛");
+}
+function actualizarBalance(){
+  desdePanelEdicion = true; ultimoSnapshotGuardado = null;
+  if(panelDatos.balance) hidratarDesdeBalance(panelDatos.balance);
+  else pantallaBienvenidaConEmail(emailOrquestador);
+}
 function continuarARangoDesdePanel(){
   desdePanelEdicion = true;
   const persona = normalizarPersona(panelDatos.balance);
