@@ -936,12 +936,12 @@ function n(v){ return Number(v) || 0; }
 function cop(v){ v = Number(v) || 0; const signo = v < 0 ? "-" : ""; return signo + "$" + Math.round(Math.abs(v)).toLocaleString("es-CO"); }
 function pct(v){ return Math.round(v*100); }
 function esc(s){ return (s || "").toString().replace(/"/g, "&quot;"); }
-function alertaSuave(msg){
+function alertaSuave(msg, ms){
   const el = document.createElement("div");
   el.textContent = msg;
   el.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#4C4F68;color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;z-index:99;max-width:90%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.25);";
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 2600);
+  setTimeout(()=>el.remove(), ms || 2600);
 }
 
 function headerBalance(){
@@ -1110,7 +1110,7 @@ function calcularSnapshot(draft, tasas){
       "Como tu colchón está cubierto, el siguiente paso es empezar a construir algo líquido o de mercado por fuera del ladrillo, así no dependes de vender o hipotecar la casa ante un imprevisto.",
       "Con el tiempo, ninguna categoría debería pesar más del 60-70% de tu patrimonio — ni siquiera la vivienda."
     ];
-  } else if(maxPct >= 0.7 && (maxCat === "liquidez" || maxCat === "rentaFija")){
+  } else if(maxPct >= 0.7 && (maxCat === "liquidez" || maxCat === "fondoAutonomia" || maxCat === "rentaFija")){
     arquetipo = "La Guardiana Cautelosa";
     mensaje = `El ${pct(maxPct)}% de tu patrimonio está en efectivo o CDT. Tu plata está segura, pero una parte importante no está creciendo a largo plazo.`;
     tips = [
@@ -1429,6 +1429,7 @@ function irAActualizar(){
   const state = getState();
   const ultimo = state.historial[state.historial.length-1];
   draft = JSON.parse(JSON.stringify(ultimo.raw || {}));
+  if(ultimo.raw && draft.fondoAutonomia === undefined && Array.isArray(draft.liquidez)) moverLiquidezAFondo({ usd: n(draft.tasaUSD) || 4000, eur: n(draft.tasaEUR) || 4300 });
   draftHoldings = (draft.mercadoHoldings && draft.mercadoHoldings.length) ? draft.mercadoHoldings.map(h=>({...h})) : [holdingVacio()];
   pantallaActivos(state);
 }
@@ -1474,6 +1475,7 @@ function grupoActivo(cat){
   return `<div class="cat-group">
     <div class="cat-titulo"><span class="cat-swatch" style="background:${cat.color}"></span>${cat.label}</div>
     <p class="cat-help">${cat.help}</p>
+    ${cat.key === "fondoAutonomia" && n(draft.movidoDeLiquidez) > 0 ? `<div class="microcopy"><b>Pasamos aquí los ${cop(draft.movidoDeLiquidez)} que tenías en «Liquidez — tu Fondo de Autonomía».</b> Tu patrimonio y tus meses de colchón no cambian. Si una parte sí la quieres usar en tu portafolio, réstala de aquí y escríbela en Liquidez.</div>` : ""}
     ${renderListaMonto(cat.key)}
   </div>`;
 }
@@ -1515,7 +1517,7 @@ function botonGuardarCambios(paso){
   return actualizandoCorte() ? `<button class="btn" onclick="guardarCambiosCorte('${paso}')">Guardar mis cambios</button>` : "";
 }
 function guardarCambiosCorte(paso){
-  if(paso === "activos") leerActivosDelFormulario();
+  if(paso === "activos"){ leerActivosDelFormulario(); if(avisarDuplicado()) return; }
   else DEBT_CATS.forEach(cat => draft[cat.key] = leerLista(cat.key));
   inicializarLista("gastoMensual");
   if(!leerLista("gastoMensual").length){ pantallaContexto(getState()); return; }
@@ -1542,6 +1544,7 @@ function leerActivosDelFormulario(){
 }
 function guardarActivos(){
   leerActivosDelFormulario();
+  if(avisarDuplicado()) return;
   pantallaPasivos(getState());
 }
 
@@ -4285,6 +4288,28 @@ function holdingsDelCorte(b, tasas){
   if(total > 0 && resto > Math.max(5, total * 0.01)) lista.push({ ticker: "Otras inversiones", tipo: "Otro", monto: Math.round(resto), moneda: "COP" });
   return lista;
 }
+/* 22 nov 2026 (Sofi): hasta el 17 nov la casilla se llamaba «Liquidez — tu Fondo de Autonomía»: lo que hay ahí ES el fondo. Al actualizar un corte
+   de esos, el monto se MUEVE solo a Fondo de Autonomía (no se copia: el patrimonio y el colchón quedan iguales).
+   Se reconoce porque su casilla de fondo está vacía; los cortes con el formulario nuevo guardan un número (aunque sea 0) y no se tocan. */
+function moverLiquidezAFondo(tasas){
+  draft.movidoDeLiquidez = sumaListaCop(draft.liquidez, tasas);
+  if(!(draft.movidoDeLiquidez > 0)) return;
+  draft.fondoAutonomia = draft.liquidez.map(e => ({ ...e }));
+  draft.liquidez = [];
+}
+/* Si vuelve a escribir en Liquidez la misma plata que ya está en el fondo, se avisa una vez antes de guardar (quedaría contada dos veces). */
+let duplicadoConfirmado = "";
+function avisarDuplicado(){
+  const t = { usd: draft.tasaUSD, eur: draft.tasaEUR };
+  const liq = sumaListaCop(draft.liquidez, t), fondo = sumaListaCop(draft.fondoAutonomia, t), movido = n(draft.movidoDeLiquidez);
+  const igual = (a, b) => Math.abs(a - b) <= Math.max(5, b * 0.01);
+  if(!(liq > 0 && fondo > 0) || !(igual(liq, fondo) || (movido > 0 && igual(fondo, movido)))) return false;
+  const clave = liq + "|" + fondo;
+  if(duplicadoConfirmado === clave) return false;
+  duplicadoConfirmado = clave;
+  alertaSuave("Tienes " + cop(liq) + " en Liquidez y " + cop(fondo) + " en Fondo de Autonomía. Si es la misma plata, déjala en una sola casilla para no contarla dos veces. Si son distintas, toca de nuevo el botón 💜", 9000);
+  return true;
+}
 function hidratarDesdeBalance(b){
   const secundarias = String(b.metasSecundarias || "").split(";").map(x => x.trim()).filter(Boolean);
   const state = {
@@ -4298,6 +4323,8 @@ function hidratarDesdeBalance(b){
   const tasas = { usd: draft.tasaUSD, eur: draft.tasaEUR };
   CAMPOS_SIMPLES.forEach(c => { draft[c.id] = montosDelCorte(b, c.pref, tasas); });
   draft.mercadoHoldings = holdingsDelCorte(b, tasas);
+  const vacia = v => v === "" || v === null || v === undefined;
+  if(vacia(b.activo_fondoAutonomia_cop) && vacia(b.activo_fondoAutonomia_detalle)) moverLiquidezAFondo(tasas);
   draftHoldings = draft.mercadoHoldings.length ? draft.mercadoHoldings.map(h => ({ ...h })) : [holdingVacio()];
   gastoConfirmado = null;
   pantallaActivos(state);
@@ -4368,7 +4395,7 @@ pantallaInicioUnificado();
 
 /* 22 nov 2026: en el celular la pestaña queda abierta días y muestra una versión vieja. Al volver a la página se compara con version.txt:
    en la pantalla de inicio se recarga sola; en cualquier otra se avisa, para no perder lo que esté escribiendo. */
-const VERSION_PAGINA = "2026-11-22-1";
+const VERSION_PAGINA = "2026-11-22-2";
 async function revisarVersion(){
   try{
     const r = await fetch("version.txt?t=" + Date.now(), { cache: "no-store" });
